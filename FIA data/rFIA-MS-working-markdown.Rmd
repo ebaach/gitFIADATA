@@ -1,0 +1,74 @@
+---
+title: "rFIA MS working markdown"
+author: "Elizabeth Baach"
+date: "2/9/2021"
+output: 
+  html_document: 
+    keep_md: yes
+---
+in a project... no need to set a working directory, but just in case here is the code
+```{r}
+setwd("C:/Users/elbaa/OneDrive/Desktop/MS DATA")
+```
+next lets load the packages we will be using
+```{r}
+library(rFIA)
+library(dplyr)
+library(tidyverse)
+```
+ok, now we should load the data (if not already loaded it will download and create it for us)
+```{r}
+if(file.exists("fia_ms.rdata")){
+  fiaMS <- read_rds("fia_ms.rdata")
+} else {
+  fiaMS <- getFIA(states = 'MS')
+  write_rds(fiaMS, file = "fia_ms.rdata")
+}
+
+```
+great! now lets make a copy that we can work on separately from the original and remove the original to clear up space
+```{r}
+db<-fiaMS
+rm(fiaMS)
+```
+ok now we can manipulate that database called db
+first, lets choose which data we want
+```{r}
+PLOT <- select(db$PLOT, CN, MACRO_BREAKPOINT_DIA, COUNTYCD, INVYR) %>% filter(between(INVYR,2009,2019))
+COND <- select(db$COND, PLT_CN, CONDID, CONDPROP_UNADJ, PROP_BASIS, COND_STATUS_CD, OWNGRPCD, FORTYPCD, BALIVE, STDORGCD)
+TREE <- select(db$TREE, PLT_CN, CONDID, SUBP, TREE, STATUSCD, DRYBIO_AG, CARBON_AG, TPA_UNADJ, DIA, SPCD,DRYBIO_BOLE,DRYBIO_TOP,DRYBIO_STUMP,DRYBIO_BG,SPGRPCD)
+POP_ESTN_UNIT <- select(db$POP_ESTN_UNIT, CN, EVAL_CN, AREA_USED, P1PNTCNT_EU)
+POP_EVAL <- select(db$POP_EVAL, EVALID, EVAL_GRP_CN, ESTN_METHOD, CN, END_INVYR, REPORT_YEAR_NM)
+POP_EVAL_TYP <- select(db$POP_EVAL_TYP, EVAL_TYP, EVAL_CN)
+POP_PLOT_STRATUM_ASSGN <- select(db$POP_PLOT_STRATUM_ASSGN, STRATUM_CN, PLT_CN)
+POP_STRATUM <- select(db$POP_STRATUM, ESTN_UNIT_CN, EXPNS, P2POINTCNT, 
+                      ADJ_FACTOR_MICR, ADJ_FACTOR_SUBP, ADJ_FACTOR_MACR, CN, P1POINTCNT)
+MS_FORTYP = read.csv("REF_FOREST_TYPE.csv", header=T) %>% select("VALUE","MEANING","TYPGRPCD")
+MS_FORTYPGRP = read.csv("REF_FOREST_TYPE_GROUP.csv", header = T) %>% select("VALUE","MEANING")
+SP_NAME= read.csv("REF_SPECIES.csv", header = T)
+SP_GROUP = read.csv("REF_SPECIES_GROUP.csv", header = T)
+
+```
+sweet, now that we have what we want from there lets merge
+heres a 'premerge' for the forest types
+```{r}
+MS_FOR <- MS_FORTYP %>% left_join(MS_FORTYPGRP, by= c("TYPGRPCD"="VALUE"))
+names(MS_FOR)[2]<- "Forest_Type"
+names(MS_FOR)[4]<- "Forest_Group_Type"
+```
+now for the big merge
+```{r}
+data <- PLOT %>%
+  mutate(PLT_CN = CN) %>%
+  left_join(COND, by = 'PLT_CN') %>%
+  left_join(TREE, by = c('PLT_CN', 'CONDID')) %>%
+  left_join(POP_PLOT_STRATUM_ASSGN, by = 'PLT_CN') %>%
+  left_join(POP_STRATUM, by = c('STRATUM_CN' = 'CN')) %>%
+  left_join(POP_ESTN_UNIT, by = c('ESTN_UNIT_CN' = 'CN')) %>%
+  left_join(POP_EVAL, by = c('EVAL_CN' = 'CN')) %>%
+  left_join(POP_EVAL_TYP, by = 'EVAL_CN') %>% 
+  left_join(MS_FOR, by = c("FORTYPCD"="VALUE")) %>% 
+  left_join(SP_NAME, by = c("SPCD"="SPCD")) %>% 
+  left_join(SP_GROUP, by = c("SPGRPCD" = "SPGRPCD"))
+```
+hopefully that didnt create many (ideally any) new observations

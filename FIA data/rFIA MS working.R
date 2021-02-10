@@ -14,11 +14,9 @@ if(file.exists("fia_ms.rdata")){
   write_rds(fiaMS, file = "fia_ms.rdata")
 }
 
-
-
-#identifying and subsetting necessary data
+#making a copy
 db<-fiaMS
-
+#removing the original to save space
 #rm(fiaMS)
 
 ids <- db$POP_EVAL %>%
@@ -46,23 +44,16 @@ MS_FORTYPGRP = read.csv("REF_FOREST_TYPE_GROUP.csv", header = T) %>% select("VAL
 SP_NAME= read.csv("REF_SPECIES.csv", header = T)
 SP_GROUP = read.csv("REF_SPECIES_GROUP.csv", header = T)
 
-
-
 #premerge of ref tables
 MS_FOR <- MS_FORTYP %>% left_join(MS_FORTYPGRP, by= c("TYPGRPCD"="VALUE"))
 names(MS_FOR)[2]<- "Forest_Type"
 names(MS_FOR)[4]<- "Forest_Group_Type"
 
-
-
 #merging 
 data <- PLOT %>%
-  ## Add a PLT_CN column for easy joining
   mutate(PLT_CN = CN) %>%
-  ## Join COND & TREE
   left_join(COND, by = 'PLT_CN') %>%
   left_join(TREE, by = c('PLT_CN', 'CONDID')) %>%
-  ## Population tables
   left_join(POP_PLOT_STRATUM_ASSGN, by = 'PLT_CN') %>%
   left_join(POP_STRATUM, by = c('STRATUM_CN' = 'CN')) %>%
   left_join(POP_ESTN_UNIT, by = c('ESTN_UNIT_CN' = 'CN')) %>%
