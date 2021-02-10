@@ -8,7 +8,7 @@ output:
 ---
 in a project... no need to set a working directory, but just in case here is the code
 ```{r}
-setwd("C:/Users/elbaa/OneDrive/Desktop/MS DATA")
+setwd("C:/Users/elbaa/OneDrive/Desktop/gitMSDATA")
 ```
 next lets load the packages we will be using
 ```{r}
