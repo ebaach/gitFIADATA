@@ -19,19 +19,17 @@ getFIA(c('MS'), dir = 'name', load = FALSE)
 MS <- readFIA('name', inMemory = FALSE)
 
 ```
-next, lets try some of the functions mentioned on the website
+#next, lets try rFIA functions
+biomass by plot grouping by stand origin
 ```{r}
 #must first define db at fia 
 biomass(db = MS)
+#biomass by plot
+bioplt<- biomass(MS, byPlot = TRUE, grpBy = "STDORGCD")
 
-## By species
-biosp<-biomass(MS, bySpecies = TRUE)
-
-## Alternative estimators (annual panels)
-yrbio<-biomass(MS, method = 'ANNUAL')
-
-#plot of biomass/acre/yr
-ggplot(yrbio, aes(x= yrbio$YEAR, y= yrbio$BIO_ACRE))+ geom_line()
-
+```
+diversity by plot gropuing by stand origin
+```{r}
+div_plt<- diversity(MS, byPlot = TRUE, grpBy = "STDORGCD")
 ```
 
