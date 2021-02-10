@@ -1,12 +1,13 @@
 #set working directory
-setwd("C:/Users/elbaa/OneDrive/Desktop/MS DATA")
+setwd("C:/Users/elbaa/OneDrive/Desktop/MSDATA")
 
 #load libraries
 library(rFIA)
 library(dplyr)
 library(tidyverse)
-#download database (fiaMS)
 
+#download database (fiaMS)
+#this says either read it or download it and have it be read next time
 if(file.exists("fia_ms.rdata")){
   fiaMS <- read_rds("fia_ms.rdata")
 } else {
@@ -19,15 +20,16 @@ db<-fiaMS
 #removing the original to save space
 #rm(fiaMS)
 
-ids <- db$POP_EVAL %>%
-  select('CN', 'END_INVYR', 'EVALID') %>%
-  inner_join(select(db$POP_EVAL_TYP, c('EVAL_CN', 'EVAL_TYP')), by = c('CN' = 'EVAL_CN')) %>%
-  ## Now we filter out everything except current area and 
-  ## current volume ids
-  filter(EVAL_TYP %in% c('EXPCURR', 'EXPVOL'))
-
-## Now that we have those EVALIDs, let's use clipFIA to subset
-db <- clipFIA(db, evalid = ids$EVALID)
+##this might not be needed afterall
+# ids <- db$POP_EVAL %>%
+#   select('CN', 'END_INVYR', 'EVALID') %>%
+#   inner_join(select(db$POP_EVAL_TYP, c('EVAL_CN', 'EVAL_TYP')), by = c('CN' = 'EVAL_CN')) %>%
+#   ## Now we filter out everything except current area and 
+#   ## current volume ids
+#   filter(EVAL_TYP %in% c('EXPCURR', 'EXPVOL'))
+# 
+# ## Now that we have those EVALIDs, let's use clipFIA to subset
+# db <- clipFIA(db, evalid = ids$EVALID)
 
 ## Select only the columns we need from each table
 PLOT <- select(db$PLOT, CN, MACRO_BREAKPOINT_DIA, COUNTYCD, INVYR) %>% filter(between(INVYR,2009,2019))
