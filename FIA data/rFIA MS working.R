@@ -1,12 +1,15 @@
-#set working directory
-setwd("C:/Users/elbaa/OneDrive/Desktop/MSDATA")
 
+# Setup -------------------------------------------------------------------
+
+#set working directory
+setwd("C:/Users/elbaa/OneDrive/Desktop/gitMSDATA")
 #load libraries
 library(rFIA)
 library(dplyr)
 library(tidyverse)
 
 #download database (fiaMS)
+
 #this says either read it or download it and have it be read next time
 if(file.exists("fia_ms.rdata")){
   fiaMS <- read_rds("fia_ms.rdata")
@@ -18,7 +21,7 @@ if(file.exists("fia_ms.rdata")){
 #making a copy
 db<-fiaMS
 #removing the original to save space
-#rm(fiaMS)
+rm(fiaMS)
 
 ##this might not be needed afterall
 # ids <- db$POP_EVAL %>%
@@ -31,6 +34,8 @@ db<-fiaMS
 # ## Now that we have those EVALIDs, let's use clipFIA to subset
 # db <- clipFIA(db, evalid = ids$EVALID)
 
+# selecting tables --------------------------------------------------------
+
 ## Select only the columns we need from each table
 PLOT <- select(db$PLOT, CN, MACRO_BREAKPOINT_DIA, COUNTYCD, INVYR) %>% filter(between(INVYR,2009,2019))
 COND <- select(db$COND, PLT_CN, CONDID, CONDPROP_UNADJ, PROP_BASIS, COND_STATUS_CD, OWNGRPCD, FORTYPCD, BALIVE, STDORGCD)
@@ -41,10 +46,14 @@ POP_EVAL_TYP <- select(db$POP_EVAL_TYP, EVAL_TYP, EVAL_CN)
 POP_PLOT_STRATUM_ASSGN <- select(db$POP_PLOT_STRATUM_ASSGN, STRATUM_CN, PLT_CN)
 POP_STRATUM <- select(db$POP_STRATUM, ESTN_UNIT_CN, EXPNS, P2POINTCNT, 
                       ADJ_FACTOR_MICR, ADJ_FACTOR_SUBP, ADJ_FACTOR_MACR, CN, P1POINTCNT)
+#reference tables
 MS_FORTYP = read.csv("REF_FOREST_TYPE.csv", header=T) %>% select("VALUE","MEANING","TYPGRPCD")
 MS_FORTYPGRP = read.csv("REF_FOREST_TYPE_GROUP.csv", header = T) %>% select("VALUE","MEANING")
 SP_NAME= read.csv("REF_SPECIES.csv", header = T)
 SP_GROUP = read.csv("REF_SPECIES_GROUP.csv", header = T)
+
+
+# merging -----------------------------------------------------------------
 
 #premerge of ref tables
 MS_FOR <- MS_FORTYP %>% left_join(MS_FORTYPGRP, by= c("TYPGRPCD"="VALUE"))
