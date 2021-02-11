@@ -13,25 +13,25 @@ MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 #must first define db at fia 
 biomass(db = MS)
 
-## By species
-biosp<-biomass(MS, bySpecies = TRUE)
+# ## By species
+# biosp<-biomass(MS, bySpecies = TRUE)
 
-#by plot
-bioplt<- biomass(MS, byPlot = TRUE)
-n_distinct(bioplt$BIO_ACRE)
-
-#diversity by plot
-div_plt<- diversity(MS, byPlot = TRUE)
-n_distinct(div_plt$H)
+# #by plot
+# bioplt<- biomass(MS, byPlot = TRUE)
+# n_distinct(bioplt$BIO_ACRE)
+# 
+# #diversity by plot
+# div_plt<- diversity(MS, byPlot = TRUE)
+# n_distinct(div_plt$H)
 
 
 #grouping by plt origin code
 originbio<- biomass(MS, byPlot = TRUE, grpBy = c("STDORGCD")) %>% filter(STDORGCD ==0)
 origindiv<- diversity(MS, byPlot = TRUE, grpBy = "STDORGCD")%>% filter(STDORGCD ==0)
 originvit<- vitalRates(MS, byPlot = TRUE, grpBy = "STDORGCD")%>% filter(STDORGCD ==0)
-
-#growth rates
-vits<- vitalRates(MS, byPlot = TRUE)
+# 
+# #growth rates
+# vits<- vitalRates(MS, byPlot = TRUE)
 
 n_distinct(vits$BIO_GROW_AC)
 #merge bioplt and divplt
