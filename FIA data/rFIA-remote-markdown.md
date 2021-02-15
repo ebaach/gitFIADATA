@@ -50,24 +50,24 @@ library(tidyverse)
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()
 ```
-then we can remotely add MS FIA data
+#then we can remotely add MS FIA data
+use this to download... but if already downloaded
 
 ```r
 getFIA(c('MS'), dir = 'name', load = FALSE)
 ```
 
 ```
-## Creating directory: name/
-```
-
-```
 ## Saving to name/. NOTE: modifying FIA tables in Excel may corrupt csv files.
 ```
+use this to load preferred
 
 ```r
-MS <- readFIA('name', inMemory = FALSE)
+MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 ```
-next, lets try some of the functions mentioned on the website
+
+#next, lets run the rFIA functions
+first lets define our datbase as MS
 
 ```r
 #must first define db at fia 
@@ -97,25 +97,60 @@ biomass(db = MS)
 ## 11  2018     50.6      25.3        1.04         1.04        3920        4013
 ## 12  2019     52.2      26.1        1.04         1.04        3895        3996
 ```
+filtering using natural stand origin we get:
 
 ```r
-## By species
-biosp<-biomass(MS, bySpecies = TRUE)
+originbio<- biomass(MS, byPlot = TRUE, grpBy = c("STDORGCD")) %>% filter(STDORGCD ==0)
+origindiv<- diversity(MS, byPlot = TRUE, grpBy = "STDORGCD")%>% filter(STDORGCD ==0)
+originvit<- vitalRates(MS, byPlot = TRUE, grpBy = "STDORGCD")%>% filter(STDORGCD ==0)
+```
+great! now we can add our favorite columns from the rFIA functions we just ran to a common table lets call it adddata
 
-## Alternative estimators (annual panels)
-yrbio<-biomass(MS, method = 'ANNUAL')
+```r
+adddata<- originbio
+adddata$S <- origindiv$S[match(adddata$pltID, origindiv$pltID)]
+adddata$H <- origindiv$H[match(adddata$pltID, origindiv$pltID)]
+adddata$BIO_GROW<- originvit$BIO_GROW[match(adddata$pltID,originvit$pltID)]
+adddata$BIO_GROW_AC<- originvit$BIO_GROW_AC[match(adddata$pltID, originvit$pltID)]
+```
 
-#plot of biomass/acre/yr
-ggplot(yrbio, aes(x= yrbio$YEAR, y= yrbio$BIO_ACRE))+ geom_line()
+#sweet! now we want to add columns from the general FIA database
+first we need to load those tables remotely
+
+```r
+TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
+COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
+```
+nice! now we can add our favorite columns from TREE and COND to adddata so everything we want is in one place
+lets start with tree
+
+```r
+adddata$SPCD<- TREE$TREE$SPCD[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+adddata$COUNTYCD<- TREE$TREE$COUNTYCD[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+adddata$UNITCD <- TREE$TREE$UNITCD[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+adddata$DRYBIO_AG <- TREE$TREE$DRYBIO_AG[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+```
+and heres from cond
+
+```r
+adddata$FORTYPCD <- COND$COND$FORTYPCD[match(adddata$PLT_CN, COND$COND$PLT_CN)]
+```
+awesome! now lets see if we can make the spread function work to see biomass overtime
+
+```r
+newtest<- adddata %>% group_by(pltID,YEAR) %>% summarise(biomass=sum(DRYBIO_AG))
 ```
 
 ```
-## Warning: Use of `yrbio$YEAR` is discouraged. Use `YEAR` instead.
+## `summarise()` has grouped output by 'pltID'. You can override using the `.groups` argument.
 ```
 
+```r
+newtest<- newtest %>% filter(biomass>0)
+spdtest<- spread(newtest, YEAR, biomass, fill = NA)
+view(spdtest)
+#this part below isnt working 
+# spdtest$mct <- rowSums(is.na(spdtest))
+# spdtest<- spdtest %>% filter(mct<10)
 ```
-## Warning: Use of `yrbio$BIO_ACRE` is discouraged. Use `BIO_ACRE` instead.
-```
-
-![](rFIA-remote-markdown_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 

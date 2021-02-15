@@ -399,12 +399,12 @@ library(dplyr)</code></pre>
 <pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
-<p>then we can remotely add MS FIA data</p>
+<p>#then we can remotely add MS FIA data use this to download… but if already downloaded</p>
 <pre class="r"><code>getFIA(c(&#39;MS&#39;), dir = &#39;name&#39;, load = FALSE)</code></pre>
-<pre><code>## Creating directory: name/</code></pre>
 <pre><code>## Saving to name/. NOTE: modifying FIA tables in Excel may corrupt csv files.</code></pre>
-<pre class="r"><code>MS &lt;- readFIA(&#39;name&#39;, inMemory = FALSE)</code></pre>
-<p>next, lets try some of the functions mentioned on the website</p>
+<p>use this to load preferred</p>
+<pre class="r"><code>MS &lt;- readFIA(&#39;C:/Users/elbaa/OneDrive/Desktop/gitMSDATA&#39;, inMemory = FALSE)</code></pre>
+<p>#next, lets run the rFIA functions first lets define our datbase as MS</p>
 <pre class="r"><code>#must first define db at fia 
 biomass(db = MS)</code></pre>
 <pre><code>## Warning: The `.dots` argument of `group_by()` is deprecated as of dplyr 1.0.0.
@@ -425,17 +425,35 @@ biomass(db = MS)</code></pre>
 ## 10  2017     48.2      24.1        1.06         1.06        3935        4033
 ## 11  2018     50.6      25.3        1.04         1.04        3920        4013
 ## 12  2019     52.2      26.1        1.04         1.04        3895        3996</code></pre>
-<pre class="r"><code>## By species
-biosp&lt;-biomass(MS, bySpecies = TRUE)
-
-## Alternative estimators (annual panels)
-yrbio&lt;-biomass(MS, method = &#39;ANNUAL&#39;)
-
-#plot of biomass/acre/yr
-ggplot(yrbio, aes(x= yrbio$YEAR, y= yrbio$BIO_ACRE))+ geom_line()</code></pre>
-<pre><code>## Warning: Use of `yrbio$YEAR` is discouraged. Use `YEAR` instead.</code></pre>
-<pre><code>## Warning: Use of `yrbio$BIO_ACRE` is discouraged. Use `BIO_ACRE` instead.</code></pre>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>filtering using natural stand origin we get:</p>
+<pre class="r"><code>originbio&lt;- biomass(MS, byPlot = TRUE, grpBy = c(&quot;STDORGCD&quot;)) %&gt;% filter(STDORGCD ==0)
+origindiv&lt;- diversity(MS, byPlot = TRUE, grpBy = &quot;STDORGCD&quot;)%&gt;% filter(STDORGCD ==0)
+originvit&lt;- vitalRates(MS, byPlot = TRUE, grpBy = &quot;STDORGCD&quot;)%&gt;% filter(STDORGCD ==0)</code></pre>
+<p>great! now we can add our favorite columns from the rFIA functions we just ran to a common table lets call it adddata</p>
+<pre class="r"><code>adddata&lt;- originbio
+adddata$S &lt;- origindiv$S[match(adddata$pltID, origindiv$pltID)]
+adddata$H &lt;- origindiv$H[match(adddata$pltID, origindiv$pltID)]
+adddata$BIO_GROW&lt;- originvit$BIO_GROW[match(adddata$pltID,originvit$pltID)]
+adddata$BIO_GROW_AC&lt;- originvit$BIO_GROW_AC[match(adddata$pltID, originvit$pltID)]</code></pre>
+<p>#sweet! now we want to add columns from the general FIA database first we need to load those tables remotely</p>
+<pre class="r"><code>TREE &lt;- readFIA(dir = &#39;C:/Users/elbaa/OneDrive/Desktop/gitMSDATA&#39;, tables = &#39;TREE&#39;, inMemory = TRUE)
+COND &lt;- readFIA(dir = &#39;C:/Users/elbaa/OneDrive/Desktop/gitMSDATA&#39;, tables = &#39;COND&#39;, inMemory = TRUE)</code></pre>
+<p>nice! now we can add our favorite columns from TREE and COND to adddata so everything we want is in one place lets start with tree</p>
+<pre class="r"><code>adddata$SPCD&lt;- TREE$TREE$SPCD[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+adddata$COUNTYCD&lt;- TREE$TREE$COUNTYCD[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+adddata$UNITCD &lt;- TREE$TREE$UNITCD[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]
+adddata$DRYBIO_AG &lt;- TREE$TREE$DRYBIO_AG[match(adddata$PLT_CN, TREE$TREE$PLT_CN)]</code></pre>
+<p>and heres from cond</p>
+<pre class="r"><code>adddata$FORTYPCD &lt;- COND$COND$FORTYPCD[match(adddata$PLT_CN, COND$COND$PLT_CN)]</code></pre>
+<p>awesome! now lets see if we can make the spread function work to see biomass overtime</p>
+<pre class="r"><code>newtest&lt;- adddata %&gt;% group_by(pltID,YEAR) %&gt;% summarise(biomass=sum(DRYBIO_AG))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;pltID&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>newtest&lt;- newtest %&gt;% filter(biomass&gt;0)
+spdtest&lt;- spread(newtest, YEAR, biomass, fill = NA)
+view(spdtest)
+#this part below isnt working 
+# spdtest$mct &lt;- rowSums(is.na(spdtest))
+# spdtest&lt;- spdtest %&gt;% filter(mct&lt;10)</code></pre>
 
 
 

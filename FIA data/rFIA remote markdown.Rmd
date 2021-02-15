@@ -18,7 +18,7 @@ use this to download... but if already downloaded
 getFIA(c('MS'), dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', load = FALSE)
 
 ```
-use this to load **preferred**
+use this to load preferred
 ```{r}
 MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 ```

@@ -53,9 +53,9 @@ adddata$DRYBIO_AG <- TREE$TREE$DRYBIO_AG[match(adddata$PLT_CN, TREE$TREE$PLT_CN)
 adddata$FORTYPCD <- COND$COND$FORTYPCD[match(adddata$PLT_CN, COND$COND$PLT_CN)]
 
 #ok lets try the spread function
-newtest<- adddata %>% group_by(pltID,YEAR) %>% summarise(changebiomass= sum(DRYBIO_AG))
+newtest<- adddata %>% group_by(pltID,YEAR) %>% summarise(biomass= sum(DRYBIO_AG))
 newtest<- newtest %>% filter(biomass>0)
-spdtest<- spread(newtest, YEAR, changebiomass, fill = NA)
+spdtest<- spread(newtest, YEAR, biomass, fill = NA)
 #this part below isnt working
 # spdtest$mct <- rowSums(is.na(spdtest))
 # spdtest<- spdtest %>% filter(mct<10)
