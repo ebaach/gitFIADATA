@@ -236,9 +236,14 @@ dataavg$mean <- rowMeans(dataavg[,16:70], na.rm=TRUE)
 dataavg <- dataavg %>% select("mean", everything())
 
 #scatterplot anyone?
+#heres one for change in biomass across all plots
 datasum<- dataavg %>% group_by(pltID) %>% summarise(changeinbiomass=mean)
 ggplot(datasum, aes(x= pltID, y= changeinbiomass))+ geom_point()
 
+#heres change in biomass based on species richness
+dataavg$S <- adddata$S[match(dataavg$pltID, adddata$pltID)]
+datatry<- dataavg %>% group_by(pltID) %>% summarise(changeinbiomass=mean, speciesrichness=S)
+ggplot(datatry, aes(x=speciesrichness, y=changeinbiomass))+geom_point()
 
 
 #making some graphs (poster1)

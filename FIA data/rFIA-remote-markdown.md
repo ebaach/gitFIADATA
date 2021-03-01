@@ -253,3 +253,17 @@ ggplot(datasum, aes(x= pltID, y= changeinbiomass))+ geom_point()
 
 ![](rFIA-remote-markdown_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
+heres another that compares species richness to change in biomass
+
+```r
+dataavg$S <- adddata$S[match(dataavg$pltID, adddata$pltID)]
+datatry<- dataavg %>% group_by(pltID) %>% summarise(changeinbiomass=mean, speciesrichness=S)
+ggplot(datatry, aes(x=speciesrichness, y=changeinbiomass))+geom_point()
+```
+
+```
+## Warning: Removed 1890 rows containing missing values (geom_point).
+```
+
+![](rFIA-remote-markdown_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
