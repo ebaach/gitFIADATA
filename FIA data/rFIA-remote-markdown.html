@@ -450,10 +450,87 @@ adddata$DRYBIO_AG &lt;- TREE$TREE$DRYBIO_AG[match(adddata$PLT_CN, TREE$TREE$PLT_
 <pre><code>## `summarise()` has grouped output by &#39;pltID&#39;. You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>newtest&lt;- newtest %&gt;% filter(biomass&gt;0)
 spdtest&lt;- spread(newtest, YEAR, biomass, fill = NA)
-view(spdtest)
-#this part below isnt working 
-# spdtest$mct &lt;- rowSums(is.na(spdtest))
-# spdtest&lt;- spdtest %&gt;% filter(mct&lt;10)</code></pre>
+view(spdtest)</code></pre>
+<p>ok, nows the time to get some subtraction going first lets select only 2009-2019, then name them so we can use them properly</p>
+<pre class="r"><code>data&lt;- spdtest  %&gt;% select(-c(&quot;2006&quot;,&quot;2007&quot;,&quot;2008&quot;))
+data&lt;- rename(data, c(X2019=&quot;2019&quot;, X2018=&quot;2018&quot;, X2017=&quot;2017&quot;, X2016=&quot;2016&quot;, X2015=&quot;2015&quot;, X2014=&quot;2014&quot;, X2013=&quot;2013&quot;, X2012=&quot;2012&quot;, X2011=&quot;2011&quot;, X2010=&quot;2010&quot;, X2009=&quot;2009&quot;))</code></pre>
+<p>sweet! Now time for the monster if_else section</p>
+<pre class="r"><code>data$diff1918=   if_else((data$X2019&gt;0)&amp;(data$X2018&gt;0),(data$X2019-data$X2018)/1,0) 
+data$diff1917=  if_else((data$X2019&gt;0)&amp;(data$X2017&gt;0),(data$X2019-data$X2017)/2,0)
+data$diff1916=  if_else((data$X2019&gt;0)&amp;(data$X2016&gt;0),(data$X2019-data$X2016)/3,0)
+data$diff1915=  if_else((data$X2019&gt;0)&amp;(data$X2015&gt;0),(data$X2019-data$X2015)/4,0)
+data$diff1914= if_else((data$X2019&gt;0)&amp;(data$X2014&gt;0),(data$X2019-data$X2014)/5,0)
+data$diff1913=  if_else((data$X2019&gt;0)&amp;(data$X2013&gt;0),(data$X2019-data$X2013)/6,0)
+data$diff1912=  if_else((data$X2019&gt;0)&amp;(data$X2012&gt;0),(data$X2019-data$X2012)/7,0)
+data$diff1911=  if_else((data$X2019&gt;0)&amp;(data$X2011&gt;0),(data$X2019-data$X2011)/8,0)
+data$diff1910=  if_else((data$X2019&gt;0)&amp;(data$X2010&gt;0),(data$X2019-data$X2010)/9,0)
+data$diff1909=  if_else((data$X2019&gt;0)&amp;(data$X2009&gt;0),(data$X2019-data$X2009)/10,0)
+
+data$diff1817=             if_else((data$X2018&gt;0)&amp;(data$X2017&gt;0),(data$X2018-data$X2017)/1,0)
+data$diff1816=             if_else((data$X2018&gt;0)&amp;(data$X2016&gt;0),(data$X2018-data$X2016)/2,0)
+data$diff1815=             if_else((data$X2018&gt;0)&amp;(data$X2015&gt;0),(data$X2018-data$X2015)/3,0)
+data$diff1814=          if_else((data$X2018&gt;0)&amp;(data$X2014&gt;0),(data$X2018-data$X2014)/4,0)
+data$diff1813=             if_else((data$X2018&gt;0)&amp;(data$X2013&gt;0),(data$X2018-data$X2013)/5,0)
+data$diff1812=       if_else((data$X2018&gt;0)&amp;(data$X2012&gt;0),(data$X2018-data$X2012)/6,0)
+data$diff1811=         if_else((data$X2018&gt;0)&amp;(data$X2011&gt;0),(data$X2018-data$X2011)/7,0)
+data$diff1810=            if_else((data$X2018&gt;0)&amp;(data$X2010&gt;0),(data$X2018-data$X2010)/8,0)
+data$diff1809=            if_else((data$X2018&gt;0)&amp;(data$X2009&gt;0),(data$X2018-data$X2009)/9,0)
+
+data$diff1716=            if_else((data$X2017&gt;0)&amp;(data$X2016&gt;0),(data$X2017-data$X2016)/1,0)
+data$diff1715=            if_else((data$X2017&gt;0)&amp;(data$X2015&gt;0),(data$X2017-data$X2015)/2,0)
+data$diff1714=            if_else((data$X2017&gt;0)&amp;(data$X2014&gt;0),(data$X2017-data$X2014)/3,0)
+data$diff1713=           if_else((data$X2017&gt;0)&amp;(data$X2013&gt;0),(data$X2017-data$X2013)/4,0)
+data$diff1712=       if_else((data$X2017&gt;0)&amp;(data$X2012&gt;0),(data$X2017-data$X2012)/5,0)
+data$diff1711=        if_else((data$X2017&gt;0)&amp;(data$X2011&gt;0),(data$X2017-data$X2011)/6,0)
+data$diff1710=        if_else((data$X2017&gt;0)&amp;(data$X2010&gt;0),(data$X2017-data$X2010)/7,0)
+data$diff1709=          if_else((data$X2017&gt;0)&amp;(data$X2009&gt;0),(data$X2017-data$X2009)/8,0)
+
+data$diff1615=      if_else((data$X2016&gt;0)&amp;(data$X2015&gt;0),(data$X2016-data$X2015)/1,0)
+data$diff1614=   if_else((data$X2016&gt;0)&amp;(data$X2014&gt;0),(data$X2016-data$X2014)/2,0)
+data$diff1613=    if_else((data$X2016&gt;0)&amp;(data$X2013&gt;0),(data$X2016-data$X2013)/3,0)
+data$diff1612=    if_else((data$X2016&gt;0)&amp;(data$X2012&gt;0),(data$X2016-data$X2012)/4,0)
+data$diff1611=    if_else((data$X2016&gt;0)&amp;(data$X2011&gt;0),(data$X2016-data$X2011)/5,0)
+data$diff1610=       if_else((data$X2016&gt;0)&amp;(data$X2010&gt;0),(data$X2016-data$X2010)/6,0)
+data$diff1609=    if_else((data$X2016&gt;0)&amp;(data$X2009&gt;0),(data$X2016-data$X2009)/7,0)
+
+data$diff1514=        if_else((data$X2015&gt;0)&amp;(data$X2014&gt;0),(data$X2015-data$X2014)/1,0)
+data$diff1513=         if_else((data$X2015&gt;0)&amp;(data$X2013&gt;0),(data$X2015-data$X2013)/2,0)
+data$diff1512=        if_else((data$X2015&gt;0)&amp;(data$X2012&gt;0),(data$X2015-data$X2012)/3,0)
+data$diff1511=        if_else((data$X2015&gt;0)&amp;(data$X2011&gt;0),(data$X2015-data$X2011)/4,0)
+data$diff1510=       if_else((data$X2015&gt;0)&amp;(data$X2010&gt;0),(data$X2015-data$X2010)/5,0)
+data$diff1509=       if_else((data$X2015&gt;0)&amp;(data$X2009&gt;0),(data$X2015-data$X2009)/6,0)
+
+data$diff1413=       if_else((data$X2014&gt;0)&amp;(data$X2013&gt;0),(data$X2014-data$X2013)/1,0)
+data$diff1412=       if_else((data$X2014&gt;0)&amp;(data$X2012&gt;0),(data$X2014-data$X2012)/2,0)
+data$diff1411=       if_else((data$X2014&gt;0)&amp;(data$X2011&gt;0),(data$X2014-data$X2011)/3,0)
+data$diff1410=       if_else((data$X2014&gt;0)&amp;(data$X2010&gt;0),(data$X2014-data$X2010)/4,0)
+data$diff1409=       if_else((data$X2014&gt;0)&amp;(data$X2009&gt;0),(data$X2014-data$X2009)/5,0)
+
+data$diff1312=       if_else((data$X2013&gt;0)&amp;(data$X2012&gt;0),(data$X2013-data$X2012)/1,0)
+data$diff1311=        if_else((data$X2013&gt;0)&amp;(data$X2011&gt;0),(data$X2013-data$X2011)/2,0)
+data$diff1310=         if_else((data$X2013&gt;0)&amp;(data$X2010&gt;0),(data$X2013-data$X2010)/3,0)
+data$diff1309=         if_else((data$X2013&gt;0)&amp;(data$X2009&gt;0),(data$X2013-data$X2009)/4,0)
+
+data$diff1211=          if_else((data$X2012&gt;0)&amp;(data$X2011&gt;0),(data$X2012-data$X2011)/1,0)
+data$diff1210=          if_else((data$X2012&gt;0)&amp;(data$X2010&gt;0),(data$X2012-data$X2010)/2,0)
+data$diff1209=           if_else((data$X2012&gt;0)&amp;(data$X2009&gt;0),(data$X2012-data$X2009)/3,0)
+
+data$diff1110=       if_else((data$X2011&gt;0)&amp;(data$X2010&gt;0),(data$X2011-data$X2010)/1,0)
+data$diff1109=       if_else((data$X2011&gt;0)&amp;(data$X2009&gt;0),(data$X2011-data$X2009)/2,0)
+
+data$diff1009=        if_else((data$X2010&gt;0)&amp;(data$X2009&gt;0),(data$X2010-data$X2009)/1,0)</code></pre>
+<p>very good! now that thats done, lets make a new table to work with and make some changes</p>
+<pre class="r"><code>dataavg&lt;- data
+dataavg$mean &lt;- rowMeans(dataavg[,16:69], na.rm=TRUE)
+dataavg &lt;- dataavg %&gt;% select(&quot;mean&quot;, everything())
+summary(dataavg$mean)</code></pre>
+<pre><code>##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max.      NA&#39;s 
+## -1280.209     3.296    19.958    36.768    59.467  2033.920      1890</code></pre>
+<p>awesome! moment of truth… lets make a scatterplot!</p>
+<pre class="r"><code>datasum&lt;- dataavg %&gt;% group_by(pltID) %&gt;% summarise(changeinbiomass=mean)
+ggplot(datasum, aes(x= pltID, y= changeinbiomass))+ geom_point()</code></pre>
+<pre><code>## Warning: Removed 1890 rows containing missing values (geom_point).</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 
 
 
