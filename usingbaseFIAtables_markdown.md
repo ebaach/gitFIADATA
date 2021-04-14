@@ -1314,8 +1314,6 @@ species richness and change in biomass
 
 ```r
 initplot<- ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
-initplot
+view(initplot)
 ```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 

@@ -1260,6 +1260,6 @@ compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %
 species richness and change in biomass
 ```{r}
 initplot<- ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
-initplot
+view(initplot)
 ```
 
