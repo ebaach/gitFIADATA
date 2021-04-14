@@ -1313,7 +1313,8 @@ compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %
 species richness and change in biomass
 
 ```r
-ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
+initplot<- ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
+initplot
 ```
 
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
