@@ -9,44 +9,87 @@ output:
 
 #setting up
 loading libraries
-```{r}
+
+```r
 library(rFIA)
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 library(tidyverse)
 ```
+
+```
+## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+```
+
+```
+## v ggplot2 3.3.3     v purrr   0.3.4
+## v tibble  3.0.6     v stringr 1.4.0
+## v tidyr   1.1.2     v forcats 0.5.1
+## v readr   1.4.0
+```
+
+```
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+```
 making a space to work out of
-```{r}
+
+```r
 MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 ```
 loading tables to use
-```{r}
+
+```r
 TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
 ```
 #filtering
 tree table
-```{r}
+
+```r
 tree_tab <- TREE$TREE
 tree_tab <- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD, TOTAGE, PREVDIA))
 ```
 plot table
-```{r}
+
+```r
 plot_tab <- PLOT$PLOT
 plot_tab<- select(plot_tab, c(CN, PREV_PLT_CN, INVYR, COUNTYCD))
 plot_tab<- plot_tab %>% mutate(PLT_CN = CN)
 plot_tab<- select(plot_tab, -c(CN))
-
 ```
 cond table
-```{r}
+
+```r
 cond_tab <- COND$COND
 cond_tab<- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1))
 cond_tab<- cond_tab %>% filter(STDORGCD==0)
 ```
 #subsetting by year
 tree
-```{r}
+
+```r
 tree09 <- tree_tab %>% subset(INVYR==2009)
     tree10 <- tree_tab %>% subset(INVYR==2010)
     tree11 <- tree_tab %>% subset(INVYR==2011)
@@ -60,7 +103,8 @@ tree09 <- tree_tab %>% subset(INVYR==2009)
     tree19 <- tree_tab %>% subset(INVYR==2019)
 ```
 plot
-```{r}
+
+```r
 plot09<- plot_tab %>% subset(INVYR==2009)
     plot10<- plot_tab %>% subset(INVYR==2010)
     plot11<- plot_tab %>% subset(INVYR==2011)
@@ -74,7 +118,8 @@ plot09<- plot_tab %>% subset(INVYR==2009)
     plot19<- plot_tab %>% subset(INVYR==2019)
 ```
 cond
-```{r}
+
+```r
  cond09<- cond_tab %>% subset(INVYR==2009)
     cond10<- cond_tab %>% subset(INVYR==2010)
     cond11<- cond_tab %>% subset(INVYR==2011)
@@ -89,7 +134,8 @@ cond
 ```
 
 #filtering to get matching CN and PREV_TRE_CN
-```{r}
+
+```r
  #2009 to 2016
     checkdat1609 <- subset(tree16, tree16$PREV_TRE_CN %in% tree09$CN)
     checkdat1609 <- subset(checkdat1609, select = -c(CN))
@@ -190,10 +236,10 @@ cond
     checkdat1915 <- subset(checkdat1915, select = -c(CN))
     checkdat1915$CN <- checkdat1915$PREV_TRE_CN
     checkdat1915 <- subset(checkdat1915, select = -c(PREV_TRE_CN, PLT_CN))
-    
 ```
 now for the other way around
-```{r}
+
+```r
 #2009-16
     checkdat0916 <- subset(tree09, tree09$CN %in%  tree16$PREV_TRE_CN)
     checkdat0916 <- subset(checkdat0916, select = -c(PREV_TRE_CN))
@@ -256,7 +302,8 @@ now for the other way around
     checkdat1519 <- subset(checkdat1519, select = -c(PREV_TRE_CN))
 ```
 #Merging remeasured plots
-```{r}
+
+```r
 #now we merge the beginning and ending years for each cycle
 
 #2009 to 2016
@@ -482,7 +529,8 @@ data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 ```
 
 #Adding columns from COND to filter then removing them
-```{r}
+
+```r
 #2009-16
 data0916$STDORGCD09 <- cond09$STDORGCD[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
 data0916$STDORGCD16 <- cond16$STDORGCD[match(data0916$COUNTY_PLOT, cond16$COUNTY_PLOT)]
@@ -864,7 +912,8 @@ data1519<- data1519 %>% filter(TRT19==0)
 data1519<- data1519 %>% select(-c(TRT15, TRT19))
 ```
 #Filtering by species in a plot
-```{r}
+
+```r
 #making new col with county plot and spcd
 data0916$CNTY_PLT_SPCD<-paste(data0916$COUNTY_PLOT,data0916$SPCD,sep="#")
 
@@ -907,8 +956,8 @@ data1518$CNTY_PLT_SPCD<-paste(data1518$COUNTY_PLOT,data1518$SPCD,sep="#")
 data1519$CNTY_PLT_SPCD<-paste(data1519$COUNTY_PLOT,data1519$SPCD,sep="#")
 ```
 getting sum diameter for species in each plot
-```{r}
 
+```r
 #2009-16
 grp0916<- data0916 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA09=sum(DIA09),sumDIA16=sum(DIA16))
 #2009-17
@@ -949,10 +998,10 @@ grp1419<- data1419 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA14=sum(DIA14)
 grp1518<- data1518 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA15=sum(DIA15),sumDIA18=sum(DIA18))
 #2015-19
 grp1519<- data1519 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA15=sum(DIA15),sumDIA19=sum(DIA19))
-
 ```
 #Readding cols that I want to keep
-```{r}
+
+```r
 #2009-16
 grp0916$SPCD <- data0916$SPCD[match(grp0916$CNTY_PLT_SPCD, data0916$CNTY_PLT_SPCD)]
 grp0916$COUNTY_PLOT <- data0916$COUNTY_PLOT[match(grp0916$CNTY_PLT_SPCD, data0916$CNTY_PLT_SPCD)]
@@ -1017,7 +1066,8 @@ grp1519$COUNTY_PLOT <- data1519$COUNTY_PLOT[match(grp1519$CNTY_PLT_SPCD,data1519
 
 #Biomass equation building
 making the equation
-```{r}
+
+```r
 #log(biomass)=B0+B1*log(DIA)----> biomass= exp(BO+ B1*log(DIA))
 
 biomass_function <- function(spp, dbh) { 
@@ -1123,10 +1173,10 @@ spp== 993 ~ exp( -1.8011   +    2.3852 *log(dbh)),
 spp== 994 ~ exp( -2.2118   +    2.4133 *log(dbh)),
 spp== 995 ~ exp( -2.2118   +    2.4133 *log(dbh)),)
 }
-
 ```
 now applying it to all plots and years and making biomass/yr
-```{r}
+
+```r
 #2009-16
 bio0916<- grp0916 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = sumDIA09))
 bio0916<- bio0916 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = sumDIA16))
@@ -1210,7 +1260,8 @@ bio1519$bio_change <- ((bio1519$bio19- bio1519$bio15)/4)
 ```
 
 #Merging all plots and years
-```{r}
+
+```r
 mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
 mer0917 <- bio0917 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
 mer0918 <- bio0918 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')    
@@ -1237,7 +1288,8 @@ compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, me
 ```
 
 #Adding descriptive columns
-```{r}
+
+```r
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
 
 #not making sense over time----> delete or keep for now??
@@ -1252,13 +1304,17 @@ compdata$PLOT <- cond_tab$PLOT[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)
 ```
 
 lets caluculate species richness per plot
-```{r}
+
+```r
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 ```
 
 #Making a graph to look at data
 species richness and change in biomass
-```{r}
+
+```r
 ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
 ```
+
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 
