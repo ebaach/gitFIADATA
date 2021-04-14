@@ -379,7 +379,9 @@ summary {
 </div>
 
 
-<p>#setting up loading libraries</p>
+<div id="setting-up" class="section level2">
+<h2>setting up</h2>
+<p>loading libraries</p>
 <pre class="r"><code>library(rFIA)
 library(dplyr)</code></pre>
 <pre><code>## 
@@ -405,7 +407,10 @@ library(dplyr)</code></pre>
 <pre class="r"><code>TREE &lt;- readFIA(dir = &#39;C:/Users/elbaa/OneDrive/Desktop/gitMSDATA&#39;, tables = &#39;TREE&#39;, inMemory = TRUE)
 COND &lt;- readFIA(dir = &#39;C:/Users/elbaa/OneDrive/Desktop/gitMSDATA&#39;, tables = &#39;COND&#39;, inMemory = TRUE)
 PLOT &lt;- readFIA(dir = &#39;C:/Users/elbaa/OneDrive/Desktop/gitMSDATA&#39;, tables = &#39;PLOT&#39;, inMemory = TRUE)</code></pre>
-<p>#filtering tree table</p>
+</div>
+<div id="filtering" class="section level2">
+<h2>filtering</h2>
+<p>tree table</p>
 <pre class="r"><code>tree_tab &lt;- TREE$TREE
 tree_tab &lt;- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD, TOTAGE, PREVDIA))</code></pre>
 <p>plot table</p>
@@ -417,7 +422,10 @@ plot_tab&lt;- select(plot_tab, -c(CN))</code></pre>
 <pre class="r"><code>cond_tab &lt;- COND$COND
 cond_tab&lt;- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1))
 cond_tab&lt;- cond_tab %&gt;% filter(STDORGCD==0)</code></pre>
-<p>#subsetting by year tree</p>
+</div>
+<div id="subsetting-by-year" class="section level2">
+<h2>subsetting by year</h2>
+<p>tree</p>
 <pre class="r"><code>tree09 &lt;- tree_tab %&gt;% subset(INVYR==2009)
     tree10 &lt;- tree_tab %&gt;% subset(INVYR==2010)
     tree11 &lt;- tree_tab %&gt;% subset(INVYR==2011)
@@ -453,7 +461,9 @@ cond_tab&lt;- cond_tab %&gt;% filter(STDORGCD==0)</code></pre>
     cond17&lt;- cond_tab %&gt;% subset(INVYR==2017)
     cond18&lt;- cond_tab %&gt;% subset(INVYR==2018)
     cond19&lt;- cond_tab %&gt;% subset(INVYR==2019)</code></pre>
-<p>#filtering to get matching CN and PREV_TRE_CN</p>
+</div>
+<div id="filtering-to-get-matching-cn-and-prev_tre_cn" class="section level2">
+<h2>filtering to get matching CN and PREV_TRE_CN</h2>
 <pre class="r"><code> #2009 to 2016
     checkdat1609 &lt;- subset(tree16, tree16$PREV_TRE_CN %in% tree09$CN)
     checkdat1609 &lt;- subset(checkdat1609, select = -c(CN))
@@ -615,7 +625,9 @@ cond_tab&lt;- cond_tab %&gt;% filter(STDORGCD==0)</code></pre>
   #2015-19
     checkdat1519 &lt;- subset(tree15, tree15$CN %in%  tree19$PREV_TRE_CN)
     checkdat1519 &lt;- subset(checkdat1519, select = -c(PREV_TRE_CN))</code></pre>
-<p>#Merging remeasured plots</p>
+</div>
+<div id="merging-remeasured-plots" class="section level2">
+<h2>Merging remeasured plots</h2>
 <pre class="r"><code>#now we merge the beginning and ending years for each cycle
 
 #2009 to 2016
@@ -838,7 +850,9 @@ data1519$HT19&lt;- data1519$HT
 data1519&lt;- data1519 %&gt;% select(-c(HT, INVYR))
 data1519&lt;- data1519 %&gt;% group_by(COUNTYCD) %&gt;% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT &lt;- paste(data1519$COUNTYCD,data1519$PLOT, sep=&quot;_&quot;)</code></pre>
-<p>#Adding columns from COND to filter then removing them</p>
+</div>
+<div id="adding-columns-from-cond-to-filter-then-removing-them" class="section level2">
+<h2>Adding columns from COND to filter then removing them</h2>
 <pre class="r"><code>#2009-16
 data0916$STDORGCD09 &lt;- cond09$STDORGCD[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
 data0916$STDORGCD16 &lt;- cond16$STDORGCD[match(data0916$COUNTY_PLOT, cond16$COUNTY_PLOT)]
@@ -1218,7 +1232,9 @@ data1519$TRT19 &lt;- cond19$TRTCD1[match(data1519$COUNTY_PLOT, cond19$COUNTY_PLO
 data1519&lt;- data1519 %&gt;% filter(TRT15==0)
 data1519&lt;- data1519 %&gt;% filter(TRT19==0)
 data1519&lt;- data1519 %&gt;% select(-c(TRT15, TRT19))</code></pre>
-<p>#Filtering by species in a plot</p>
+</div>
+<div id="filtering-by-species-in-a-plot" class="section level2">
+<h2>Filtering by species in a plot</h2>
 <pre class="r"><code>#making new col with county plot and spcd
 data0916$CNTY_PLT_SPCD&lt;-paste(data0916$COUNTY_PLOT,data0916$SPCD,sep=&quot;#&quot;)
 
@@ -1300,7 +1316,9 @@ grp1419&lt;- data1419 %&gt;% group_by(CNTY_PLT_SPCD) %&gt;% summarise(sumDIA14=s
 grp1518&lt;- data1518 %&gt;% group_by(CNTY_PLT_SPCD) %&gt;% summarise(sumDIA15=sum(DIA15),sumDIA18=sum(DIA18))
 #2015-19
 grp1519&lt;- data1519 %&gt;% group_by(CNTY_PLT_SPCD) %&gt;% summarise(sumDIA15=sum(DIA15),sumDIA19=sum(DIA19))</code></pre>
-<p>#Readding cols that I want to keep</p>
+</div>
+<div id="readding-cols-that-i-want-to-keep" class="section level2">
+<h2>Readding cols that I want to keep</h2>
 <pre class="r"><code>#2009-16
 grp0916$SPCD &lt;- data0916$SPCD[match(grp0916$CNTY_PLT_SPCD, data0916$CNTY_PLT_SPCD)]
 grp0916$COUNTY_PLOT &lt;- data0916$COUNTY_PLOT[match(grp0916$CNTY_PLT_SPCD, data0916$CNTY_PLT_SPCD)]
@@ -1361,7 +1379,10 @@ grp1518$COUNTY_PLOT &lt;- data1518$COUNTY_PLOT[match(grp1518$CNTY_PLT_SPCD,data1
 #2015-19
 grp1519$SPCD&lt;- data1519$SPCD[match(grp1519$CNTY_PLT_SPCD,data1519$CNTY_PLT_SPCD)]
 grp1519$COUNTY_PLOT &lt;- data1519$COUNTY_PLOT[match(grp1519$CNTY_PLT_SPCD,data1519$CNTY_PLT_SPCD)]</code></pre>
-<p>#Biomass equation building making the equation</p>
+</div>
+<div id="biomass-equation-building" class="section level2">
+<h2>Biomass equation building</h2>
+<p>making the equation</p>
 <pre class="r"><code>#log(biomass)=B0+B1*log(DIA)----&gt; biomass= exp(BO+ B1*log(DIA))
 
 biomass_function &lt;- function(spp, dbh) { 
@@ -1548,7 +1569,9 @@ bio1518$bio_change &lt;- ((bio1518$bio18- bio1518$bio15)/3)
 bio1519&lt;- grp1519 %&gt;% mutate(bio15 = biomass_function(spp = SPCD, dbh = sumDIA15))
 bio1519&lt;- bio1519 %&gt;% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
 bio1519$bio_change &lt;- ((bio1519$bio19- bio1519$bio15)/4)</code></pre>
-<p>#Merging all plots and years</p>
+</div>
+<div id="merging-all-plots-and-years" class="section level2">
+<h2>Merging all plots and years</h2>
 <pre class="r"><code>mer0916 &lt;- bio0916 %&gt;% select(&#39;CNTY_PLT_SPCD&#39;,&#39;COUNTY_PLOT&#39;, &#39;bio_change&#39;,&#39;SPCD&#39;)
 mer0917 &lt;- bio0917 %&gt;% select(&#39;CNTY_PLT_SPCD&#39;,&#39;COUNTY_PLOT&#39;, &#39;bio_change&#39;,&#39;SPCD&#39;)
 mer0918 &lt;- bio0918 %&gt;% select(&#39;CNTY_PLT_SPCD&#39;,&#39;COUNTY_PLOT&#39;, &#39;bio_change&#39;,&#39;SPCD&#39;)    
@@ -1572,7 +1595,9 @@ mer1519 &lt;- bio1519 %&gt;% select(&#39;CNTY_PLT_SPCD&#39;,&#39;COUNTY_PLOT&#39
 
 #now for the complete merge
 compdata&lt;- mer0916 %&gt;% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, mer1116, mer1117, mer1118, mer1119, mer1216, mer1217, mer1218, mer1219, mer1318, mer1319, mer1418, mer1419, mer1518, mer1519)</code></pre>
-<p>#Adding descriptive columns</p>
+</div>
+<div id="adding-descriptive-columns" class="section level2">
+<h2>Adding descriptive columns</h2>
 <pre class="r"><code>compdata$FORTYPCD &lt;- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
 
 #not making sense over time----&gt; delete or keep for now??
@@ -1586,9 +1611,13 @@ compdata$COUNTYCD &lt;- cond_tab$COUNTYCD[match(compdata$COUNTY_PLOT, cond_tab$C
 compdata$PLOT &lt;- cond_tab$PLOT[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]</code></pre>
 <p>lets caluculate species richness per plot</p>
 <pre class="r"><code>compdata&lt;- compdata %&gt;% group_by(COUNTY_PLOT) %&gt;% mutate(S = n_distinct(SPCD)) %&gt;% ungroup()</code></pre>
-<p>#Making a graph to look at data species richness and change in biomass</p>
+</div>
+<div id="making-a-graph-to-look-at-data" class="section level2">
+<h2>Making a graph to look at data</h2>
+<p>species richness and change in biomass</p>
 <pre class="r"><code>initplot&lt;- ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
 view(initplot)</code></pre>
+</div>
 
 
 

@@ -7,7 +7,7 @@ output:
     keep_md: yes
 ---
 
-#setting up
+## setting up
 loading libraries
 
 ```r
@@ -64,7 +64,7 @@ TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TRE
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
 ```
-#filtering
+## filtering
 tree table
 
 ```r
@@ -86,7 +86,7 @@ cond_tab <- COND$COND
 cond_tab<- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1))
 cond_tab<- cond_tab %>% filter(STDORGCD==0)
 ```
-#subsetting by year
+## subsetting by year
 tree
 
 ```r
@@ -133,7 +133,7 @@ cond
     cond19<- cond_tab %>% subset(INVYR==2019)
 ```
 
-#filtering to get matching CN and PREV_TRE_CN
+## filtering to get matching CN and PREV_TRE_CN
 
 ```r
  #2009 to 2016
@@ -301,7 +301,7 @@ now for the other way around
     checkdat1519 <- subset(tree15, tree15$CN %in%  tree19$PREV_TRE_CN)
     checkdat1519 <- subset(checkdat1519, select = -c(PREV_TRE_CN))
 ```
-#Merging remeasured plots
+## Merging remeasured plots
 
 ```r
 #now we merge the beginning and ending years for each cycle
@@ -528,7 +528,7 @@ data1519<- data1519 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 ```
 
-#Adding columns from COND to filter then removing them
+## Adding columns from COND to filter then removing them
 
 ```r
 #2009-16
@@ -911,7 +911,7 @@ data1519<- data1519 %>% filter(TRT15==0)
 data1519<- data1519 %>% filter(TRT19==0)
 data1519<- data1519 %>% select(-c(TRT15, TRT19))
 ```
-#Filtering by species in a plot
+## Filtering by species in a plot
 
 ```r
 #making new col with county plot and spcd
@@ -999,7 +999,7 @@ grp1518<- data1518 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA15=sum(DIA15)
 #2015-19
 grp1519<- data1519 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA15=sum(DIA15),sumDIA19=sum(DIA19))
 ```
-#Readding cols that I want to keep
+## Readding cols that I want to keep
 
 ```r
 #2009-16
@@ -1064,7 +1064,7 @@ grp1519$SPCD<- data1519$SPCD[match(grp1519$CNTY_PLT_SPCD,data1519$CNTY_PLT_SPCD)
 grp1519$COUNTY_PLOT <- data1519$COUNTY_PLOT[match(grp1519$CNTY_PLT_SPCD,data1519$CNTY_PLT_SPCD)]
 ```
 
-#Biomass equation building
+## Biomass equation building
 making the equation
 
 ```r
@@ -1259,7 +1259,7 @@ bio1519<- bio1519 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19
 bio1519$bio_change <- ((bio1519$bio19- bio1519$bio15)/4)
 ```
 
-#Merging all plots and years
+## Merging all plots and years
 
 ```r
 mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
@@ -1287,7 +1287,7 @@ mer1519 <- bio1519 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD'
 compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, mer1116, mer1117, mer1118, mer1119, mer1216, mer1217, mer1218, mer1219, mer1318, mer1319, mer1418, mer1419, mer1518, mer1519)
 ```
 
-#Adding descriptive columns
+## Adding descriptive columns
 
 ```r
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
@@ -1309,7 +1309,7 @@ lets caluculate species richness per plot
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 ```
 
-#Making a graph to look at data
+## Making a graph to look at data
 species richness and change in biomass
 
 ```r
