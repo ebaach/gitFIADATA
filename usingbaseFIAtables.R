@@ -14,9 +14,6 @@ MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
-#wont run pop eval for some reason (?)
-# POP_EVAL <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA',tables = 'MS_POP_EVAL', inMemory = TRUE)
-
 
 # Filtering Tables --------------------------------------------------------
 
@@ -24,6 +21,10 @@ PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLO
 #filtering TREE table
 tree_tab <- TREE$TREE
 tree_tab <- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD, PREVDIA))
+tree_tab <- tree_tab %>% mutate(diam = (2.54 * tree_tab$DIA ))
+tree_tab<- tree_tab %>% select(-c(DIA))
+tree_tab$DIA<- tree_tab$diam
+tree_tab<- tree_tab %>% select(-c(diam))
 
 #filtering PLOT table
 plot_tab <- PLOT$PLOT
@@ -857,154 +858,284 @@ data1519<- data1519 %>% filter(TRT15==0)
 data1519<- data1519 %>% filter(TRT19==0)
 data1519<- data1519 %>% select(-c(TRT15, TRT19))
 
-# filtering by species in a plot ------------------------------------------
-#making new col with county plot and spcd
-data0916$CNTY_PLT_SPCD<-paste(data0916$COUNTY_PLOT,data0916$SPCD,sep="#")
+# Biomass equation building -----------------------------------------------
 
-data0917$CNTY_PLT_SPCD<-paste(data0917$COUNTY_PLOT,data0917$SPCD,sep="#")
+#log(biomass)=B0+B1*log(DIA)----> biomass= exp(BO+ B1*log(DIA))
 
-data0918$CNTY_PLT_SPCD<-paste(data0918$COUNTY_PLOT,data0918$SPCD,sep="#")
+biomass_function <- function(spp, dbh) { 
+  case_when(
+    spp== 43  ~ exp( -2.7765   +    2.4195 *log(dbh)),                
+    spp== 68  ~ exp( -2.6327   +    2.4757 *log(dbh)),
+    spp== 110 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 111 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 115 ~ exp( -2.6177   +    2.4638 *log(dbh)),
+    spp== 121 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 131 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 132 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 221 ~ exp( -2.6327   +    2.4757 *log(dbh)),
+    spp== 222 ~ exp( -2.6327   +    2.4757 *log(dbh)),
+    spp== 311 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 313 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 316 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 317 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 341 ~ exp( -1.8011   +    2.3852 *log(dbh)),
+    spp== 345 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 356 ~ exp( -2.2118   +    2.4133 *log(dbh)), 
+    spp== 367 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 373 ~ exp( -1.8096   +    2.3480 *log(dbh)),
+    spp== 381 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 391 ~ exp( -2.2652   +    2.5349 *log(dbh)),
+    spp== 401 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 402 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 403 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 404 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 405 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 407 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 408 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 409 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 413 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 451 ~ exp( -2.0314   +    2.3524 *log(dbh)),
+    spp== 461 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 471 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 491 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 500 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 521 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 531 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 541 ~ exp( -1.8384   +    2.3524 *log(dbh)),
+    spp== 544 ~ exp( -2.0314   +    2.3524 *log(dbh)),
+    spp== 552 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 555 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 571 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 582 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 591 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 602 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 611 ~ exp( -2.6390   +    2.5466 *log(dbh)),
+    spp== 621 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 641 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 651 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 652 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 653 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 654 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 662 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 682 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 691 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 693 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 694 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 701 ~ exp( -2.2652   +    2.5349 *log(dbh)),
+    spp== 711 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 712 ~ exp( -2.0314   +    2.3524 *log(dbh)),
+    spp== 721 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 722 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 731 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 742 ~ exp( -2.4441   +    2.4561 *log(dbh)),
+    spp== 760 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 762 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 763 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 802 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 806 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 808 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 812 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 813 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 819 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 820 ~ exp( -2.2198   +    2.4410 *log(dbh)),
+    spp== 822 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 824 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 825 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 826 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 827 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 828 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 831 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 832 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 833 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 834 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 835 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 837 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 838 ~ exp( -2.2198   +    2.4410 *log(dbh)),
+    spp== 901 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 922 ~ exp( -2.4441   +    2.4561 *log(dbh)),
+    spp== 929 ~ exp( -2.4441   +    2.4561 *log(dbh)),
+    spp== 931 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 951 ~ exp( -2.4108   +    2.4177 *log(dbh)),
+    spp== 953 ~ exp( -2.4108   +    2.4177 *log(dbh)),
+    spp== 971 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 972 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 973 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 975 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 993 ~ exp( -1.8011   +    2.3852 *log(dbh)),
+    spp== 994 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 995 ~ exp( -2.2118   +    2.4133 *log(dbh)),)
+}
 
-data1016$CNTY_PLT_SPCD<-paste(data1016$COUNTY_PLOT,data1016$SPCD,sep="#")
-
-data1018$CNTY_PLT_SPCD<-paste(data1018$COUNTY_PLOT,data1018$SPCD,sep="#")
-
-data1019$CNTY_PLT_SPCD<-paste(data1019$COUNTY_PLOT,data1019$SPCD,sep="#")
-
-data1116$CNTY_PLT_SPCD<-paste(data1116$COUNTY_PLOT,data1116$SPCD,sep="#")
-
-data1117$CNTY_PLT_SPCD<-paste(data1117$COUNTY_PLOT,data1117$SPCD,sep="#")
-
-data1118$CNTY_PLT_SPCD<-paste(data1118$COUNTY_PLOT,data1118$SPCD,sep="#")
-
-data1119$CNTY_PLT_SPCD<-paste(data1119$COUNTY_PLOT,data1119$SPCD,sep="#")
-
-data1216$CNTY_PLT_SPCD<-paste(data1216$COUNTY_PLOT,data1216$SPCD,sep="#")
-
-data1217$CNTY_PLT_SPCD<-paste(data1217$COUNTY_PLOT,data1217$SPCD,sep="#")
-
-data1218$CNTY_PLT_SPCD<-paste(data1218$COUNTY_PLOT,data1218$SPCD,sep="#")
-
-data1219$CNTY_PLT_SPCD<-paste(data1219$COUNTY_PLOT,data1219$SPCD,sep="#")
-
-data1318$CNTY_PLT_SPCD<-paste(data1318$COUNTY_PLOT,data1318$SPCD,sep="#")
-
-data1319$CNTY_PLT_SPCD<-paste(data1319$COUNTY_PLOT,data1319$SPCD,sep="#")
-
-data1418$CNTY_PLT_SPCD<-paste(data1418$COUNTY_PLOT,data1418$SPCD,sep="#")
-
-data1419$CNTY_PLT_SPCD<-paste(data1419$COUNTY_PLOT,data1419$SPCD,sep="#")
-
-data1518$CNTY_PLT_SPCD<-paste(data1518$COUNTY_PLOT,data1518$SPCD,sep="#")
-
-data1519$CNTY_PLT_SPCD<-paste(data1519$COUNTY_PLOT,data1519$SPCD,sep="#")
-
-#getting sums dia for species/plot
+# applying biomass equation -----------------------------------------------
 
 #2009-16
-grp0916<- data0916 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA09=sum(DIA09),sumDIA16=sum(DIA16))
+bio0916<- data0916 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = DIA09))
+bio0916<- bio0916 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
+
 #2009-17
-grp0917<- data0917 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA09=sum(DIA09),sumDIA17=sum(DIA17))
+bio0917<- data0917 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = DIA09))
+bio0917<- bio0917 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = DIA17))
+
 #2009-18
-grp0918<- data0918 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA09=sum(DIA09),sumDIA18=sum(DIA18))
+bio0918<- data0918 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = DIA09))
+bio0918<- bio0918 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2010-16
-grp1016<- data1016 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA10=sum(DIA10),sumDIA16=sum(DIA16))
+bio1016<- data1016 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = DIA10))
+bio1016<- bio1016 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
+
 #2010-18
-grp1018<- data1018 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA10=sum(DIA10),sumDIA18=sum(DIA18))
+bio1018<- data1018 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = DIA10))
+bio1018<- bio1018 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2010-19
-grp1019<- data1019 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA10=sum(DIA10),sumDIA19=sum(DIA19))
+bio1019<- data1019 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = DIA10))
+bio1019<- bio1019 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
+
 #2011-16
-grp1116<- data1116 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA11=sum(DIA11),sumDIA16=sum(DIA16))
+bio1116<- data1116 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = DIA11))
+bio1116<- bio1116 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
+
 #2011-17
-grp1117<- data1117 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA11=sum(DIA11),sumDIA17=sum(DIA17))
+bio1117<- data1117 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = DIA11))
+bio1117<- bio1117 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = DIA17))
+
 #2011-18
-grp1118<- data1118 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA11=sum(DIA11),sumDIA18=sum(DIA18))
+bio1118<- data1118 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = DIA11))
+bio1118<- bio1118 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2011-19
-grp1119<- data1119 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA11=sum(DIA11),sumDIA19=sum(DIA19))
+bio1119<- data1119 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = DIA11))
+bio1119<- bio1119 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
+
 #2012-16
-grp1216<- data1216 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA12=sum(DIA12),sumDIA16=sum(DIA16))
+bio1216<- data1216 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = DIA12))
+bio1216<- bio1216 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
+
 #2012-17
-grp1217<- data1217 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA12=sum(DIA12),sumDIA17=sum(DIA17))
+bio1217<- data1217 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = DIA12))
+bio1217<- bio1217 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = DIA17))
+
 #2012-18
-grp1218<- data1218 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA12=sum(DIA12),sumDIA18=sum(DIA18))
+bio1218<- data1218 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = DIA12))
+bio1218<- bio1218 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2012-19
-grp1219<- data1219 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA12=sum(DIA12),sumDIA19=sum(DIA19))
+bio1219<- data1219 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = DIA12))
+bio1219<- bio1219 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
+
 #2013-18
-grp1318<- data1318 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA13=sum(DIA13),sumDIA18=sum(DIA18))
+bio1318<- data1318 %>% mutate(bio13 = biomass_function(spp = SPCD, dbh = DIA13))
+bio1318<- bio1318 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2013-19
-grp1319<- data1319 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA13=sum(DIA13),sumDIA19=sum(DIA19))
+bio1319<- data1319 %>% mutate(bio13 = biomass_function(spp = SPCD, dbh = DIA13))
+bio1319<- bio1319 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
+
 #2014-18
-grp1418<- data1418 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA14=sum(DIA14),sumDIA18=sum(DIA18))
+bio1418<- data1418 %>% mutate(bio14 = biomass_function(spp = SPCD, dbh = DIA14))
+bio1418<- bio1418 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2014-19
-grp1419<- data1419 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA14=sum(DIA14),sumDIA19=sum(DIA19))
+bio1419<- data1419 %>% mutate(bio14 = biomass_function(spp = SPCD, dbh = DIA14))
+bio1419<- bio1419 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
+
 #2015-18
-grp1518<- data1518 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA15=sum(DIA15),sumDIA18=sum(DIA18))
+bio1518<- data1518 %>% mutate(bio15 = biomass_function(spp = SPCD, dbh = DIA15))
+bio1518<- bio1518 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
 #2015-19
-grp1519<- data1519 %>% group_by(CNTY_PLT_SPCD) %>% summarise(sumDIA15=sum(DIA15),sumDIA19=sum(DIA19))
+bio1519<- data1519 %>% mutate(bio15 = biomass_function(spp = SPCD, dbh = DIA15))
+bio1519<- bio1519 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
 
 
-#adding cols from earlier I want in this new group
+# summing biomass ---------------------------------------------------------
+
+#getting sums biomass for plot
 #2009-16
-grp0916$SPCD <- data0916$SPCD[match(grp0916$CNTY_PLT_SPCD, data0916$CNTY_PLT_SPCD)]
-grp0916$COUNTY_PLOT <- data0916$COUNTY_PLOT[match(grp0916$CNTY_PLT_SPCD, data0916$CNTY_PLT_SPCD)]
+bio0916<- bio0916 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio09=sum(bio09),sumbio16=sum(bio16))
+bio0916$bio_change <- ((bio0916$sumbio16- bio0916$sumbio09)/7)
 #2009-17
-grp0917$SPCD <- data0917$SPCD[match(grp0917$CNTY_PLT_SPCD, data0917$CNTY_PLT_SPCD)]
-grp0917$COUNTY_PLOT <- data0917$COUNTY_PLOT[match(grp0917$CNTY_PLT_SPCD, data0917$CNTY_PLT_SPCD)]
+bio0917<- bio0917 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio09=sum(bio09),sumbio17=sum(bio17))
+bio0917$bio_change <- ((bio0917$sumbio17- bio0917$sumbio09)/8)
 #2009-18
-grp0918$SPCD <- data0918$SPCD[match(grp0918$CNTY_PLT_SPCD, data0918$CNTY_PLT_SPCD)]
-grp0918$COUNTY_PLOT <- data0918$COUNTY_PLOT[match(grp0918$CNTY_PLT_SPCD, data0918$CNTY_PLT_SPCD)]
+bio0918<- bio0918 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio09=sum(bio09),sumbio18=sum(bio18))
+bio0918$bio_change <- ((bio0918$sumbio18- bio0918$sumbio09)/9)
 #2010-16
-grp1016$SPCD<- data1016$SPCD[match(grp1016$CNTY_PLT_SPCD,data1016$CNTY_PLT_SPCD)]
-grp1016$COUNTY_PLOT <- data1016$COUNTY_PLOT[match(grp1016$CNTY_PLT_SPCD,data1016$CNTY_PLT_SPCD)]
+bio1016<- bio1016 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio10=sum(bio10),sumbio16=sum(bio16))
+bio1016$bio_change <- ((bio1016$sumbio16- bio1016$sumbio10)/6)
 #2010-18
-grp1018$SPCD<- data1018$SPCD[match(grp1018$CNTY_PLT_SPCD,data1018$CNTY_PLT_SPCD)]
-grp1018$COUNTY_PLOT <- data1018$COUNTY_PLOT[match(grp1018$CNTY_PLT_SPCD,data1018$CNTY_PLT_SPCD)]
+bio1018<- bio1018 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio10=sum(bio10),sumbio18=sum(bio18))
+bio1018$bio_change <- ((bio1018$sumbio18- bio1018$sumbio10)/8)
 #2010-19
-grp1019$SPCD<- data1019$SPCD[match(grp1019$CNTY_PLT_SPCD,data1019$CNTY_PLT_SPCD)]
-grp1019$COUNTY_PLOT <- data1019$COUNTY_PLOT[match(grp1019$CNTY_PLT_SPCD,data1019$CNTY_PLT_SPCD)]
+bio1019<- bio1019 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio10=sum(bio10),sumbio19=sum(bio19))
+bio1019$bio_change <- ((bio1019$sumbio19- bio1019$sumbio10)/9)
 #2011-16
-grp1116$SPCD<- data1116$SPCD[match(grp1116$CNTY_PLT_SPCD,data1116$CNTY_PLT_SPCD)]
-grp1116$COUNTY_PLOT <- data1116$COUNTY_PLOT[match(grp1116$CNTY_PLT_SPCD,data1116$CNTY_PLT_SPCD)]
+bio1116<- bio1116 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio11=sum(bio11),sumbio16=sum(bio16))
+bio1116$bio_change <- ((bio1116$sumbio16- bio1116$sumbio11)/5)
 #2011-17
-grp1117$SPCD<- data1117$SPCD[match(grp1117$CNTY_PLT_SPCD,data1117$CNTY_PLT_SPCD)]
-grp1117$COUNTY_PLOT <- data1117$COUNTY_PLOT[match(grp1117$CNTY_PLT_SPCD,data1117$CNTY_PLT_SPCD)]
+bio1117<- bio1117 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio11=sum(bio11),sumbio17=sum(bio17))
+bio1117$bio_change <- ((bio1117$sumbio17- bio1117$sumbio11)/6)
 #2011-18
-grp1118$SPCD<- data1118$SPCD[match(grp1118$CNTY_PLT_SPCD,data1118$CNTY_PLT_SPCD)]
-grp1118$COUNTY_PLOT <- data1118$COUNTY_PLOT[match(grp1118$CNTY_PLT_SPCD,data1118$CNTY_PLT_SPCD)]
-#2011-2019
-grp1119$SPCD<- data1119$SPCD[match(grp1119$CNTY_PLT_SPCD,data1119$CNTY_PLT_SPCD)]
-grp1119$COUNTY_PLOT <- data1119$COUNTY_PLOT[match(grp1119$CNTY_PLT_SPCD,data1119$CNTY_PLT_SPCD)]
+bio1118<- bio1118 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio11=sum(bio11),sumbio18=sum(bio18))
+bio1118$bio_change <- ((bio1118$sumbio18- bio1118$sumbio11)/7)
+#2011-19
+bio1119<- bio1119 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio11=sum(bio11),sumbio19=sum(bio19))
+bio1119$bio_change <- ((bio1119$sumbio19- bio1119$sumbio11)/8)
 #2012-16
-grp1216$SPCD<- data1216$SPCD[match(grp1216$CNTY_PLT_SPCD,data1216$CNTY_PLT_SPCD)]
-grp1216$COUNTY_PLOT <- data1216$COUNTY_PLOT[match(grp1216$CNTY_PLT_SPCD,data1216$CNTY_PLT_SPCD)]
+bio1216<- bio1216 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio12=sum(bio12),sumbio16=sum(bio16))
+bio1216$bio_change <- ((bio1216$sumbio16- bio1216$sumbio12)/4)
 #2012-17
-grp1217$SPCD<- data1217$SPCD[match(grp1217$CNTY_PLT_SPCD,data1217$CNTY_PLT_SPCD)]
-grp1217$COUNTY_PLOT <- data1217$COUNTY_PLOT[match(grp1217$CNTY_PLT_SPCD,data1217$CNTY_PLT_SPCD)]
+bio1217<- bio1217 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio12=sum(bio12),sumbio17=sum(bio17))
+bio1217$bio_change <- ((bio1217$sumbio17- bio1217$sumbio12)/5)
 #2012-18
-grp1218$SPCD<- data1218$SPCD[match(grp1218$CNTY_PLT_SPCD,data1218$CNTY_PLT_SPCD)]
-grp1218$COUNTY_PLOT <- data1218$COUNTY_PLOT[match(grp1218$CNTY_PLT_SPCD,data1218$CNTY_PLT_SPCD)]
+bio1218<- bio1218 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio12=sum(bio12),sumbio18=sum(bio18))
+bio1218$bio_change <- ((bio1218$sumbio18- bio1218$sumbio12)/6)
 #2012-19
-grp1219$SPCD<- data1219$SPCD[match(grp1219$CNTY_PLT_SPCD,data1219$CNTY_PLT_SPCD)]
-grp1219$COUNTY_PLOT <- data1219$COUNTY_PLOT[match(grp1219$CNTY_PLT_SPCD,data1219$CNTY_PLT_SPCD)]
+bio1219<- bio1219 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio12=sum(bio12),sumbio19=sum(bio19))
+bio1219$bio_change <- ((bio1219$sumbio19- bio1219$sumbio12)/7)
 #2013-18
-grp1318$SPCD<- data1318$SPCD[match(grp1318$CNTY_PLT_SPCD,data1318$CNTY_PLT_SPCD)]
-grp1318$COUNTY_PLOT <- data1318$COUNTY_PLOT[match(grp1318$CNTY_PLT_SPCD,data1318$CNTY_PLT_SPCD)]
+bio1318<- bio1318 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio13=sum(bio13),sumbio18=sum(bio18))
+bio1318$bio_change <- ((bio1318$sumbio18- bio1318$sumbio13)/5)
 #2013-19
-grp1319$SPCD<- data1319$SPCD[match(grp1319$CNTY_PLT_SPCD,data1319$CNTY_PLT_SPCD)]
-grp1319$COUNTY_PLOT <- data1319$COUNTY_PLOT[match(grp1319$CNTY_PLT_SPCD,data1319$CNTY_PLT_SPCD)]
+bio1319<- bio1319 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio13=sum(bio13),sumbio19=sum(bio19))
+bio1319$bio_change <- ((bio1319$sumbio19- bio1319$sumbio13)/6)
 #2014-18
-grp1418$SPCD<- data1418$SPCD[match(grp1418$CNTY_PLT_SPCD,data1418$CNTY_PLT_SPCD)]
-grp1418$COUNTY_PLOT <- data1418$COUNTY_PLOT[match(grp1418$CNTY_PLT_SPCD,data1418$CNTY_PLT_SPCD)]
+bio1418<- bio1418 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio14=sum(bio14),sumbio18=sum(bio18))
+bio1418$bio_change <- ((bio1418$sumbio18- bio1418$sumbio14)/4)
 #2014-19
-grp1419$SPCD<- data1419$SPCD[match(grp1419$CNTY_PLT_SPCD,data1419$CNTY_PLT_SPCD)]
-grp1419$COUNTY_PLOT <- data1419$COUNTY_PLOT[match(grp1419$CNTY_PLT_SPCD,data1419$CNTY_PLT_SPCD)]
+bio1419<- bio1419 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio14=sum(bio14),sumbio19=sum(bio19))
+bio1419$bio_change <- ((bio1419$sumbio19- bio1419$sumbio14)/5)
 #2015-18
-grp1518$SPCD<- data1518$SPCD[match(grp1518$CNTY_PLT_SPCD,data1518$CNTY_PLT_SPCD)]
-grp1518$COUNTY_PLOT <- data1518$COUNTY_PLOT[match(grp1518$CNTY_PLT_SPCD,data1518$CNTY_PLT_SPCD)]
+bio1518<- bio1518 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio15=sum(bio15),sumbio18=sum(bio18))
+bio1518$bio_change <- ((bio1518$sumbio18- bio1518$sumbio15)/3)
 #2015-19
-grp1519$SPCD<- data1519$SPCD[match(grp1519$CNTY_PLT_SPCD,data1519$CNTY_PLT_SPCD)]
-grp1519$COUNTY_PLOT <- data1519$COUNTY_PLOT[match(grp1519$CNTY_PLT_SPCD,data1519$CNTY_PLT_SPCD)]
+bio1519<- bio1519 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio15=sum(bio15),sumbio19=sum(bio19))
+bio1519$bio_change <- ((bio1519$sumbio19- bio1519$sumbio15)/4)
 
+
+# adding cols i want ------------------------------------------------------
+#making new col with county plot and spcd
+bio0916$CNTY_PLT_SPCD<-paste(bio0916$COUNTY_PLOT,data0916$SPCD,sep="#")
+bio0917$CNTY_PLT_SPCD<-paste(bio0917$COUNTY_PLOT,data0917$SPCD,sep="#")
+bio0918$CNTY_PLT_SPCD<-paste(bio0918$COUNTY_PLOT,data0918$SPCD,sep="#")
+bio1016$CNTY_PLT_SPCD<-paste(bio1016$COUNTY_PLOT,data1016$SPCD,sep="#")
+bio1018$CNTY_PLT_SPCD<-paste(bio1018$COUNTY_PLOT,data1018$SPCD,sep="#")
+bio1019$CNTY_PLT_SPCD<-paste(bio1019$COUNTY_PLOT,data1019$SPCD,sep="#")
+bio1116$CNTY_PLT_SPCD<-paste(bio1116$COUNTY_PLOT,data1116$SPCD,sep="#")
+bio1117$CNTY_PLT_SPCD<-paste(bio1117$COUNTY_PLOT,data1117$SPCD,sep="#")
+bio1118$CNTY_PLT_SPCD<-paste(bio1118$COUNTY_PLOT,data1118$SPCD,sep="#")
+bio1119$CNTY_PLT_SPCD<-paste(bio1119$COUNTY_PLOT,data1119$SPCD,sep="#")
+bio1216$CNTY_PLT_SPCD<-paste(bio1216$COUNTY_PLOT,data1216$SPCD,sep="#")
+bio1217$CNTY_PLT_SPCD<-paste(bio1217$COUNTY_PLOT,data1217$SPCD,sep="#")
+bio1218$CNTY_PLT_SPCD<-paste(bio1218$COUNTY_PLOT,data1218$SPCD,sep="#")
+bio1219$CNTY_PLT_SPCD<-paste(bio1219$COUNTY_PLOT,data1219$SPCD,sep="#")
+bio1318$CNTY_PLT_SPCD<-paste(bio1318$COUNTY_PLOT,data1318$SPCD,sep="#")
+bio1319$CNTY_PLT_SPCD<-paste(bio1319$COUNTY_PLOT,data1319$SPCD,sep="#")
+bio1418$CNTY_PLT_SPCD<-paste(bio1418$COUNTY_PLOT,data1418$SPCD,sep="#")
+bio1419$CNTY_PLT_SPCD<-paste(bio1419$COUNTY_PLOT,data1419$SPCD,sep="#")
+bio1518$CNTY_PLT_SPCD<-paste(bio1518$COUNTY_PLOT,data1518$SPCD,sep="#")
+bio1519$CNTY_PLT_SPCD<-paste(bio1519$COUNTY_PLOT,data1519$SPCD,sep="#")
 
 # Species code ID -------------------------------------------------------
 #SPCD  COMMON_NAME        B0           B1
@@ -1114,195 +1245,6 @@ grp1519$COUNTY_PLOT <- data1519$COUNTY_PLOT[match(grp1519$CNTY_PLT_SPCD,data1519
 #999 = unknown live tree
   
 
-# Biomass equation building -----------------------------------------------
-
-#log(biomass)=B0+B1*log(DIA)----> biomass= exp(BO+ B1*log(DIA))
-
-biomass_function <- function(spp, dbh) { 
-  case_when(
-spp== 43  ~ exp( -2.7765   +    2.4195 *log(dbh)),                
-spp== 68  ~ exp( -2.6327   +    2.4757 *log(dbh)),
-spp== 110 ~ exp( -3.0506   +    2.6465 *log(dbh)),
-spp== 111 ~ exp( -3.0506   +    2.6465 *log(dbh)),
-spp== 115 ~ exp( -2.6177   +    2.4638 *log(dbh)),
-spp== 121 ~ exp( -3.0506   +    2.6465 *log(dbh)),
-spp== 131 ~ exp( -3.0506   +    2.6465 *log(dbh)),
-spp== 132 ~ exp( -3.0506   +    2.6465 *log(dbh)),
-spp== 221 ~ exp( -2.6327   +    2.4757 *log(dbh)),
-spp== 222 ~ exp( -2.6327   +    2.4757 *log(dbh)),
-spp== 311 ~ exp( -2.0470   +    2.3852 *log(dbh)),
-spp== 313 ~ exp( -2.0470   +    2.3852 *log(dbh)),
-spp== 316 ~ exp( -2.0470   +    2.3852 *log(dbh)),
-spp== 317 ~ exp( -2.0470   +    2.3852 *log(dbh)),
-spp== 341 ~ exp( -1.8011   +    2.3852 *log(dbh)),
-spp== 345 ~ exp( -2.5095   +    2.5437 *log(dbh)),
-spp== 356 ~ exp( -2.2118   +    2.4133 *log(dbh)), 
-spp== 367 ~ exp( -2.5497   +    2.5011 *log(dbh)),
-spp== 373 ~ exp( -1.8096   +    2.3480 *log(dbh)),
-spp== 381 ~ exp( -2.0470   +    2.3852 *log(dbh)),
-spp== 391 ~ exp( -2.2652   +    2.5349 *log(dbh)),
-spp== 401 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 402 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 403 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 404 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 405 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 407 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 408 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 409 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 413 ~ exp( -2.5095   +    2.6175 *log(dbh)),
-spp== 451 ~ exp( -2.0314   +    2.3524 *log(dbh)),
-spp== 461 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 471 ~ exp( -2.5095   +    2.5437 *log(dbh)),
-spp== 491 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 500 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 521 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 531 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 541 ~ exp( -1.8384   +    2.3524 *log(dbh)),
-spp== 544 ~ exp( -2.0314   +    2.3524 *log(dbh)),
-spp== 552 ~ exp( -2.5095   +    2.5437 *log(dbh)),
-spp== 555 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 571 ~ exp( -2.5095   +    2.5437 *log(dbh)),
-spp== 582 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 591 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 602 ~ exp( -2.5095   +    2.5437 *log(dbh)),
-spp== 611 ~ exp( -2.6390   +    2.5466 *log(dbh)),
-spp== 621 ~ exp( -2.5497   +    2.5011 *log(dbh)),
-spp== 641 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 651 ~ exp( -2.5497   +    2.5011 *log(dbh)),
-spp== 652 ~ exp( -2.5497   +    2.5011 *log(dbh)),
-spp== 653 ~ exp( -2.5497   +    2.5011 *log(dbh)),
-spp== 654 ~ exp( -2.5497   +    2.5011 *log(dbh)),
-spp== 662 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 682 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 691 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 693 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 694 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 701 ~ exp( -2.2652   +    2.5349 *log(dbh)),
-spp== 711 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 712 ~ exp( -2.0314   +    2.3524 *log(dbh)),
-spp== 721 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 722 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 731 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 742 ~ exp( -2.4441   +    2.4561 *log(dbh)),
-spp== 760 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 762 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 763 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 802 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 806 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 808 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 812 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 813 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 819 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 820 ~ exp( -2.2198   +    2.4410 *log(dbh)),
-spp== 822 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 824 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 825 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 826 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 827 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 828 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 831 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 832 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 833 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 834 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 835 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 837 ~ exp( -2.0705   +    2.4410 *log(dbh)),
-spp== 838 ~ exp( -2.2198   +    2.4410 *log(dbh)),
-spp== 901 ~ exp( -2.5095   +    2.5437 *log(dbh)),
-spp== 922 ~ exp( -2.4441   +    2.4561 *log(dbh)),
-spp== 929 ~ exp( -2.4441   +    2.4561 *log(dbh)),
-spp== 931 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 951 ~ exp( -2.4108   +    2.4177 *log(dbh)),
-spp== 953 ~ exp( -2.4108   +    2.4177 *log(dbh)),
-spp== 971 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 972 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 973 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 975 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 993 ~ exp( -1.8011   +    2.3852 *log(dbh)),
-spp== 994 ~ exp( -2.2118   +    2.4133 *log(dbh)),
-spp== 995 ~ exp( -2.2118   +    2.4133 *log(dbh)),)
-}
-
-#2009-16
-bio0916<- grp0916 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = sumDIA09))
-bio0916<- bio0916 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = sumDIA16))
-bio0916$bio_change <- ((bio0916$bio16- bio0916$bio09)/7)
-#2009-17
-bio0917<- grp0917 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = sumDIA09))
-bio0917<- bio0917 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = sumDIA17))
-bio0917$bio_change <- ((bio0917$bio17- bio0917$bio09)/8)
-#2009-18
-bio0918<- grp0918 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = sumDIA09))
-bio0918<- bio0918 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio0918$bio_change <- ((bio0918$bio18- bio0918$bio09)/9)
-#2010-16
-bio1016<- grp1016 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = sumDIA10))
-bio1016<- bio1016 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = sumDIA16))
-bio1016$bio_change <- ((bio1016$bio16- bio1016$bio10)/6)
-#2010-18
-bio1018<- grp1018 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = sumDIA10))
-bio1018<- bio1018 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio1018$bio_change <- ((bio1018$bio18- bio1018$bio10)/8)
-#2010-19
-bio1019<- grp1019 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = sumDIA10))
-bio1019<- bio1019 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
-bio1019$bio_change <- ((bio1019$bio19- bio1019$bio10)/9)
-#2011-16
-bio1116<- grp1116 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = sumDIA11))
-bio1116<- bio1116 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = sumDIA16))
-bio1116$bio_change <- ((bio1116$bio16- bio1116$bio11)/5)
-#2011-17
-bio1117<- grp1117 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = sumDIA11))
-bio1117<- bio1117 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = sumDIA17))
-bio1117$bio_change <- ((bio1117$bio17- bio1117$bio11)/6)
-#2011-18
-bio1118<- grp1118 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = sumDIA11))
-bio1118<- bio1118 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio1118$bio_change <- ((bio1118$bio18- bio1118$bio11)/7)
-#2011-19
-bio1119<- grp1119 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = sumDIA11))
-bio1119<- bio1119 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
-bio1119$bio_change <- ((bio1119$bio19- bio1119$bio11)/8)
-#2012-16
-bio1216<- grp1216 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = sumDIA12))
-bio1216<- bio1216 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = sumDIA16))
-bio1216$bio_change <- ((bio1216$bio16- bio1216$bio12)/4)
-#2012-17
-bio1217<- grp1217 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = sumDIA12))
-bio1217<- bio1217 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = sumDIA17))
-bio1217$bio_change <- ((bio1217$bio17- bio1217$bio12)/5)
-#2012-18
-bio1218<- grp1218 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = sumDIA12))
-bio1218<- bio1218 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio1218$bio_change <- ((bio1218$bio18- bio1218$bio12)/6)
-#2012-19
-bio1219<- grp1219 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = sumDIA12))
-bio1219<- bio1219 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
-bio1219$bio_change <- ((bio1219$bio19- bio1219$bio12)/7)
-#2013-18
-bio1318<- grp1318 %>% mutate(bio13 = biomass_function(spp = SPCD, dbh = sumDIA13))
-bio1318<- bio1318 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio1318$bio_change <- ((bio1318$bio18- bio1318$bio13)/5)
-#2013-19
-bio1319<- grp1319 %>% mutate(bio13 = biomass_function(spp = SPCD, dbh = sumDIA13))
-bio1319<- bio1319 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
-bio1319$bio_change <- ((bio1319$bio19- bio1319$bio13)/6)
-#2014-18
-bio1418<- grp1418 %>% mutate(bio14 = biomass_function(spp = SPCD, dbh = sumDIA14))
-bio1418<- bio1418 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio1418$bio_change <- ((bio1418$bio18- bio1418$bio14)/4)
-#2014-19
-bio1419<- grp1419 %>% mutate(bio14 = biomass_function(spp = SPCD, dbh = sumDIA14))
-bio1419<- bio1419 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
-bio1419$bio_change <- ((bio1419$bio19- bio1419$bio14)/5)
-#2015-18
-bio1518<- grp1518 %>% mutate(bio15 = biomass_function(spp = SPCD, dbh = sumDIA15))
-bio1518<- bio1518 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = sumDIA18))
-bio1518$bio_change <- ((bio1518$bio18- bio1518$bio15)/3)
-#2015-19
-bio1519<- grp1519 %>% mutate(bio15 = biomass_function(spp = SPCD, dbh = sumDIA15))
-bio1519<- bio1519 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = sumDIA19))
-bio1519$bio_change <- ((bio1519$bio19- bio1519$bio15)/4)
-
 
 # merging all years and plots ---------------------------------------------
 mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
@@ -1333,22 +1275,39 @@ compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, me
 
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
 
-#not making sense over time----> delete or keep for now??
-# comdata$STDAGE<- cond_tab$STDAGE[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+# compdata$STDAGE<- cond_tab$STDAGE[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 
 compdata$LAT <- plot_tab$LAT[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$LON <- plot_tab$LON[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$ELEV<-plot_tab$ELEV[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
-
-compdata$COUNTYCD <- cond_tab$COUNTYCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
-compdata$PLOT <- cond_tab$PLOT[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 
 #lets compute species richness(S)
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 
 
 
-#lets see this in graph form----> downward trend? really high outliers? 
+# testing graphs ----------------------------------------------------------
+
+#lets see this in graph form 
 ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
+
+n_distinct(compdata$COUNTY_PLOT)
+#1173 total plots
+smallbio<- compdata %>% filter(bio_change<0)
+summary(smallbio$bio_change)
+n_distinct(smallbio$COUNTY_PLOT)
+#9 plots with biochange less than 0
+
+#mean biochange at each S
+
+#making function to compute se for errorbars
+se <- function(x) sqrt(var(x)/length(x))
+
+smeandata<- group_by(compdata,S) %>% summarise(mean= mean(bio_change, na.rm = TRUE))
+smeandata <- smeandata %>% mutate(upper = (mean + 1.96* se(x=mean)))
+smeandata <- smeandata %>% mutate(lower = (mean - 1.96* se(x=mean)))
+
+
+ggplot(smeandata, aes(x=S, y= mean))+ geom_point()+ geom_errorbar(aes(ymin=upper, ymax=lower))
 
 
