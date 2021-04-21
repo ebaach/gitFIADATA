@@ -6,6 +6,7 @@
 library(rFIA)
 library(dplyr)
 library(tidyverse)
+library(vegan)
 
 #use this to load
 MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
@@ -20,7 +21,7 @@ PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLO
 
 #filtering TREE table
 tree_tab <- TREE$TREE
-tree_tab <- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD, PREVDIA))
+tree_tab <- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD,CR, CCLCD,SPGRPCD))
 tree_tab <- tree_tab %>% mutate(diam = (2.54 * tree_tab$DIA ))
 tree_tab<- tree_tab %>% select(-c(DIA))
 tree_tab$DIA<- tree_tab$diam
@@ -28,13 +29,13 @@ tree_tab<- tree_tab %>% select(-c(diam))
 
 #filtering PLOT table
 plot_tab <- PLOT$PLOT
-plot_tab<- select(plot_tab, c(PLOT, INVYR, COUNTYCD, LAT, LON, ELEV))
+plot_tab<- select(plot_tab, c(PLOT, INVYR, COUNTYCD, LAT, LON, ELEV, RDDISTCD, ECOSUBCD))
 plot_tab$COUNTY_PLOT <- paste(plot_tab$COUNTYCD,plot_tab$PLOT, sep="_")
 plot_tab<- plot_tab %>% filter(INVYR>=2009)
 
 #filtering COND table
 cond_tab <- COND$COND
-cond_tab<- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1))
+cond_tab<- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1, SITECLCD, SICOND,PHYSCLCD, FIRE_SRS, GRAZING_SRS, OWNCD, STAND_STRUCTURE_SRS))
 cond_tab<- cond_tab %>% filter(INVYR>=2009)
 cond_tab<- cond_tab %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 cond_tab$COUNTY_PLOT <- paste(cond_tab$COUNTYCD,cond_tab$PLOT, sep="_")
@@ -258,7 +259,7 @@ cond_tab$COUNTY_PLOT <- paste(cond_tab$COUNTYCD,cond_tab$PLOT, sep="_")
 data0916<- checkdat1609
 data0916$DIA09 <- checkdat0916$DIA[match(checkdat1609$CN,checkdat0916$CN)]
 data0916$DIA16<- data0916$DIA
-data0916<- data0916 %>% select(-c(DIA, PREVDIA))
+data0916<- data0916 %>% select(-c(DIA))
 data0916$HT09<- checkdat0916$HT[match(checkdat1609$CN, checkdat0916$CN)]
 data0916$HT16<- data0916$HT
 data0916<- data0916 %>% select(-c(HT, INVYR))
@@ -270,7 +271,7 @@ data0916$COUNTY_PLOT <- paste(data0916$COUNTYCD,data0916$PLOT, sep="_")
 data0917<- checkdat1709
 data0917$DIA09 <- checkdat0917$DIA[match(checkdat1709$CN,checkdat0917$CN)]
 data0917$DIA17<- data0917$DIA
-data0917<- data0917 %>% select(-c(DIA, PREVDIA))
+data0917<- data0917 %>% select(-c(DIA ))
 data0917$HT09<- checkdat0917$HT[match(checkdat1709$CN, checkdat0917$CN)]
 data0917$HT17<- data0917$HT
 data0917<- data0917 %>% select(-c(HT, INVYR))
@@ -281,7 +282,7 @@ data0917$COUNTY_PLOT <- paste(data0917$COUNTYCD,data0917$PLOT, sep="_")
 data0918<- checkdat1809
 data0918$DIA09 <- checkdat0918$DIA[match(checkdat1809$CN,checkdat0918$CN)]
 data0918$DIA18<- data0918$DIA
-data0918<- data0918 %>% select(-c(DIA, PREVDIA))
+data0918<- data0918 %>% select(-c(DIA ))
 data0918$HT09<- checkdat0918$HT[match(checkdat1809$CN, checkdat0918$CN)]
 data0918$HT18<- data0918$HT
 data0918<- data0918 %>% select(-c(HT, INVYR))
@@ -292,7 +293,7 @@ data0918$COUNTY_PLOT <- paste(data0918$COUNTYCD,data0918$PLOT, sep="_")
 data1016<-checkdat1610
 data1016$DIA10 <- checkdat1016$DIA[match(checkdat1610$CN,checkdat1016$CN)]
 data1016$DIA16<- data1016$DIA
-data1016<- data1016 %>% select(-c(DIA, PREVDIA))
+data1016<- data1016 %>% select(-c(DIA ))
 data1016$HT10<- checkdat1016$HT[match(checkdat1610$CN, checkdat1016$CN)]
 data1016$HT16<- data1016$HT
 data1016<- data1016 %>% select(-c(HT, INVYR))
@@ -303,7 +304,7 @@ data1016$COUNTY_PLOT <- paste(data1016$COUNTYCD,data1016$PLOT, sep="_")
 data1018<-checkdat1810
 data1018$DIA10 <- checkdat1018$DIA[match(checkdat1810$CN,checkdat1018$CN)]
 data1018$DIA18<- data1018$DIA
-data1018<- data1018 %>% select(-c(DIA,   PREVDIA))
+data1018<- data1018 %>% select(-c(DIA ))
 data1018$HT10<- checkdat1018$HT[match(checkdat1810$CN, checkdat1018$CN)]
 data1018$HT18<- data1018$HT
 data1018<- data1018 %>% select(-c(HT, INVYR))
@@ -314,7 +315,7 @@ data1018$COUNTY_PLOT <- paste(data1018$COUNTYCD,data1018$PLOT, sep="_")
 data1019<-checkdat1910
 data1019$DIA10 <- checkdat1019$DIA[match(checkdat1910$CN,checkdat1019$CN)]
 data1019$DIA19<- data1019$DIA
-data1019<- data1019 %>% select(-c(DIA,   PREVDIA))
+data1019<- data1019 %>% select(-c(DIA ))
 data1019$HT10<- checkdat1019$HT[match(checkdat1910$CN, checkdat1019$CN)]
 data1019$HT19<- data1019$HT
 data1019<- data1019 %>% select(-c(HT, INVYR))
@@ -325,7 +326,7 @@ data1019$COUNTY_PLOT <- paste(data1019$COUNTYCD,data1019$PLOT, sep="_")
 data1116<-checkdat1611
 data1116$DIA11 <- checkdat1116$DIA[match(checkdat1611$CN,checkdat1116$CN)]
 data1116$DIA16<- data1116$DIA
-data1116<- data1116 %>% select(-c(DIA,   PREVDIA))
+data1116<- data1116 %>% select(-c(DIA ))
 data1116$HT11<- checkdat1116$HT[match(checkdat1611$CN, checkdat1116$CN)]
 data1116$HT16<- data1116$HT
 data1116<- data1116 %>% select(-c(HT, INVYR))
@@ -336,7 +337,7 @@ data1116$COUNTY_PLOT <- paste(data1116$COUNTYCD,data1116$PLOT, sep="_")
 data1117<-checkdat1711
 data1117$DIA11 <- checkdat1117$DIA[match(checkdat1711$CN,checkdat1117$CN)]
 data1117$DIA17<- data1117$DIA
-data1117<- data1117 %>% select(-c(DIA,   PREVDIA))
+data1117<- data1117 %>% select(-c(DIA ))
 data1117$HT11<- checkdat1117$HT[match(checkdat1711$CN, checkdat1117$CN)]
 data1117$HT17<- data1117$HT
 data1117<- data1117 %>% select(-c(HT, INVYR))
@@ -347,7 +348,7 @@ data1117$COUNTY_PLOT <- paste(data1117$COUNTYCD,data1117$PLOT, sep="_")
 data1118<-checkdat1811
 data1118$DIA11 <- checkdat1118$DIA[match(checkdat1811$CN,checkdat1118$CN)]
 data1118$DIA18<- data1118$DIA
-data1118<- data1118 %>% select(-c(DIA,   PREVDIA))
+data1118<- data1118 %>% select(-c(DIA ))
 data1118$HT11<- checkdat1118$HT[match(checkdat1811$CN, checkdat1118$CN)]
 data1118$HT18<- data1118$HT
 data1118<- data1118 %>% select(-c(HT, INVYR))
@@ -358,7 +359,7 @@ data1118$COUNTY_PLOT <- paste(data1118$COUNTYCD,data1118$PLOT, sep="_")
 data1119<-checkdat1911
 data1119$DIA11 <- checkdat1119$DIA[match(checkdat1911$CN,checkdat1119$CN)]
 data1119$DIA19<- data1119$DIA
-data1119<- data1119 %>% select(-c(DIA,   PREVDIA))
+data1119<- data1119 %>% select(-c(DIA ))
 data1119$HT11<- checkdat1119$HT[match(checkdat1911$CN, checkdat1119$CN)]
 data1119$HT19<- data1119$HT
 data1119<- data1119 %>% select(-c(HT, INVYR))
@@ -369,7 +370,7 @@ data1119$COUNTY_PLOT <- paste(data1119$COUNTYCD,data1119$PLOT, sep="_")
 data1216<-checkdat1612
 data1216$DIA12 <- checkdat1216$DIA[match(checkdat1612$CN,checkdat1216$CN)]
 data1216$DIA16<- data1216$DIA
-data1216<- data1216 %>% select(-c(DIA,   PREVDIA))
+data1216<- data1216 %>% select(-c(DIA ))
 data1216$HT12<- checkdat1216$HT[match(checkdat1612$CN, checkdat1216$CN)]
 data1216$HT16<- data1216$HT
 data1216<- data1216 %>% select(-c(HT, INVYR))
@@ -380,7 +381,7 @@ data1216$COUNTY_PLOT <- paste(data1216$COUNTYCD,data1216$PLOT, sep="_")
 data1217<-checkdat1712
 data1217$DIA12 <- checkdat1217$DIA[match(checkdat1712$CN,checkdat1217$CN)]
 data1217$DIA17<- data1217$DIA
-data1217<- data1217 %>% select(-c(DIA,   PREVDIA))
+data1217<- data1217 %>% select(-c(DIA ))
 data1217$HT12<- checkdat1217$HT[match(checkdat1712$CN, checkdat1217$CN)]
 data1217$HT17<- data1217$HT
 data1217<- data1217 %>% select(-c(HT, INVYR))
@@ -391,7 +392,7 @@ data1217$COUNTY_PLOT <- paste(data1217$COUNTYCD,data1217$PLOT, sep="_")
 data1218<-checkdat1812
 data1218$DIA12 <- checkdat1218$DIA[match(checkdat1812$CN,checkdat1218$CN)]
 data1218$DIA18<- data1218$DIA
-data1218<- data1218 %>% select(-c(DIA,   PREVDIA))
+data1218<- data1218 %>% select(-c(DIA ))
 data1218$HT12<- checkdat1218$HT[match(checkdat1812$CN, checkdat1218$CN)]
 data1218$HT18<- data1218$HT
 data1218<- data1218 %>% select(-c(HT, INVYR))
@@ -402,7 +403,7 @@ data1218$COUNTY_PLOT <- paste(data1218$COUNTYCD,data1218$PLOT, sep="_")
 data1219<-checkdat1912
 data1219$DIA12 <- checkdat1219$DIA[match(checkdat1912$CN,checkdat1219$CN)]
 data1219$DIA19<- data1219$DIA
-data1219<- data1219 %>% select(-c(DIA,   PREVDIA))
+data1219<- data1219 %>% select(-c(DIA ))
 data1219$HT12<- checkdat1219$HT[match(checkdat1912$CN, checkdat1219$CN)]
 data1219$HT19<- data1219$HT
 data1219<- data1219 %>% select(-c(HT, INVYR))
@@ -413,7 +414,7 @@ data1219$COUNTY_PLOT <- paste(data1219$COUNTYCD,data1219$PLOT, sep="_")
 data1318<-checkdat1813
 data1318$DIA13 <- checkdat1318$DIA[match(checkdat1813$CN,checkdat1318$CN)]
 data1318$DIA18<- data1318$DIA
-data1318<- data1318 %>% select(-c(DIA,   PREVDIA))
+data1318<- data1318 %>% select(-c(DIA ))
 data1318$HT13<- checkdat1318$HT[match(checkdat1813$CN, checkdat1318$CN)]
 data1318$HT18<- data1318$HT
 data1318<- data1318 %>% select(-c(HT, INVYR))
@@ -424,7 +425,7 @@ data1318$COUNTY_PLOT <- paste(data1318$COUNTYCD,data1318$PLOT, sep="_")
 data1319<-checkdat1913
 data1319$DIA13 <- checkdat1319$DIA[match(checkdat1913$CN,checkdat1319$CN)]
 data1319$DIA19<- data1319$DIA
-data1319<- data1319 %>% select(-c(DIA,   PREVDIA))
+data1319<- data1319 %>% select(-c(DIA ))
 data1319$HT13<- checkdat1319$HT[match(checkdat1913$CN, checkdat1319$CN)]
 data1319$HT19<- data1319$HT
 data1319<- data1319 %>% select(-c(HT, INVYR))
@@ -435,7 +436,7 @@ data1319$COUNTY_PLOT <- paste(data1319$COUNTYCD,data1319$PLOT, sep="_")
 data1418<-checkdat1814
 data1418$DIA14 <- checkdat1418$DIA[match(checkdat1814$CN,checkdat1418$CN)]
 data1418$DIA18<- data1418$DIA
-data1418<- data1418 %>% select(-c(DIA,   PREVDIA))
+data1418<- data1418 %>% select(-c(DIA ))
 data1418$HT14<- checkdat1418$HT[match(checkdat1814$CN, checkdat1418$CN)]
 data1418$HT18<- data1418$HT
 data1418<- data1418 %>% select(-c(HT, INVYR))
@@ -446,7 +447,7 @@ data1418$COUNTY_PLOT <- paste(data1418$COUNTYCD,data1418$PLOT, sep="_")
 data1419<-checkdat1914
 data1419$DIA14 <- checkdat1419$DIA[match(checkdat1914$CN,checkdat1419$CN)]
 data1419$DIA19<- data1419$DIA
-data1419<- data1419 %>% select(-c(DIA,   PREVDIA))
+data1419<- data1419 %>% select(-c(DIA ))
 data1419$HT14<- checkdat1419$HT[match(checkdat1914$CN, checkdat1419$CN)]
 data1419$HT19<- data1419$HT
 data1419<- data1419 %>% select(-c(HT, INVYR))
@@ -457,7 +458,7 @@ data1419$COUNTY_PLOT <- paste(data1419$COUNTYCD,data1419$PLOT, sep="_")
 data1518<-checkdat1815
 data1518$DIA15 <- checkdat1518$DIA[match(checkdat1815$CN,checkdat1518$CN)]
 data1518$DIA18<- data1518$DIA
-data1518<- data1518 %>% select(-c(DIA,   PREVDIA))
+data1518<- data1518 %>% select(-c(DIA ))
 data1518$HT15<- checkdat1518$HT[match(checkdat1815$CN, checkdat1518$CN)]
 data1518$HT18<- data1518$HT
 data1518<- data1518 %>% select(-c(HT, INVYR))
@@ -468,7 +469,7 @@ data1518$COUNTY_PLOT <- paste(data1518$COUNTYCD,data1518$PLOT, sep="_")
 data1519<-checkdat1915
 data1519$DIA15 <- checkdat1519$DIA[match(checkdat1915$CN,checkdat1519$CN)]
 data1519$DIA19<- data1519$DIA
-data1519<- data1519 %>% select(-c(DIA,   PREVDIA))
+data1519<- data1519 %>% select(-c(DIA ))
 data1519$HT15<- checkdat1519$HT[match(checkdat1915$CN, checkdat1519$CN)]
 data1519$HT19<- data1519$HT
 data1519<- data1519 %>% select(-c(HT, INVYR))
@@ -1247,49 +1248,64 @@ bio1519$CNTY_PLT_SPCD<-paste(bio1519$COUNTY_PLOT,data1519$SPCD,sep="#")
 
 
 # merging all years and plots ---------------------------------------------
-mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer0917 <- bio0917 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer0918 <- bio0918 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')    
-mer1016 <- bio1016 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1018 <- bio1018 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')    
-mer1019 <- bio1019 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1116 <- bio1116 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1117 <- bio1117 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1118 <- bio1118 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1119 <- bio1119 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1216 <- bio1216 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1217 <- bio1217 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1218 <- bio1218 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1219 <- bio1219 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1318 <- bio1318 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1319 <- bio1319 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1418 <- bio1418 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1419 <- bio1419 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1518 <- bio1518 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
-mer1519 <- bio1519 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD')
+mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer0917 <- bio0917 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer0918 <- bio0918 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1016 <- bio1016 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1018 <- bio1018 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1019 <- bio1019 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1116 <- bio1116 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1117 <- bio1117 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1118 <- bio1118 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1119 <- bio1119 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1216 <- bio1216 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1217 <- bio1217 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1218 <- bio1218 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1219 <- bio1219 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1318 <- bio1318 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1319 <- bio1319 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1418 <- bio1418 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1419 <- bio1419 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1518 <- bio1518 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer1519 <- bio1519 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
 
 #now for the complete merge
 compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, mer1116, mer1117, mer1118, mer1119, mer1216, mer1217, mer1218, mer1219, mer1318, mer1319, mer1418, mer1419, mer1518, mer1519)
 
 # adding descriptive cols  ------------------------------
-
+#COND
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
+compdata$SITECLCD <- cond_tab$SITECLCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$SICOND <- cond_tab$SICOND[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$STDAGE<- cond_tab$STDAGE[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$PHYSCLCD <- cond_tab$PHYSCLCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$OWNCD <- cond_tab$OWNCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$FIRE <- cond_tab$FIRE_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$GRAZING <- cond_tab$GRAZING_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata$STAND_STRUC <- cond_tab$STAND_STRUCTURE_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 
-# compdata$STDAGE<- cond_tab$STDAGE[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 
+#PLOT
 compdata$LAT <- plot_tab$LAT[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$LON <- plot_tab$LON[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$ELEV<-plot_tab$ELEV[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
+compdata$RD <- plot_tab$RDDISTCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
+compdata$ECOSUBCD <- plot_tab$ECOSUBCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 
 #lets compute species richness(S)
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 
-
+#lets compute shannon's index
+?diversity
+compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(SPCD, index = "shannon")) %>% ungroup()
 
 # testing graphs ----------------------------------------------------------
 
-#lets see this in graph form 
+#species richness
 ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
+
+#shannons
+ggplot(compdata, aes(x=H, y= bio_change))+ geom_point()
 
 n_distinct(compdata$COUNTY_PLOT)
 #1173 total plots
@@ -1307,7 +1323,57 @@ smeandata<- group_by(compdata,S) %>% summarise(mean= mean(bio_change, na.rm = TR
 smeandata <- smeandata %>% mutate(upper = (mean + 1.96* se(x=mean)))
 smeandata <- smeandata %>% mutate(lower = (mean - 1.96* se(x=mean)))
 
-
 ggplot(smeandata, aes(x=S, y= mean))+ geom_point()+ geom_errorbar(aes(ymin=upper, ymax=lower))
 
+compdata$S<- as.factor(compdata$S)
+ggplot(compdata, aes(x=S, y = bio_change))+ geom_boxplot()+stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
 
+#other graphs to look at
+  #numerical (continuous)
+    #compacted crown ration
+    ggplot(compdata, aes(x=CR, y= bio_change))+ geom_point()
+    #longitude
+    ggplot(compdata, aes(x=LON, y= bio_change))+ geom_point()
+    #elevation
+    ggplot(compdata, aes(x=ELEV, y= bio_change))+ geom_point()
+    #stand age
+    ggplot(compdata, aes(x=STDAGE, y= bio_change))+ geom_point()
+    #site index
+    ggplot(compdata, aes(x=SICOND, y= bio_change))+ geom_point()
+    #distance to improved road
+    ggplot(compdata, aes(x=RD, y= bio_change))+ geom_point()
+  
+  #categorical
+    #physiographic class codd
+    compdata$PHYSCLCD<- as.factor(compdata$PHYSCLCD)
+    ggplot(compdata, aes(x=PHYSCLCD, y= bio_change))+ geom_boxplot()
+    
+    #fire (0=no evidence of fire, 1= evidence of fire)
+    compdata$FIRE<- as.factor(compdata$FIRE)
+    compdata <- compdata[!is.na(compdata$FIRE),]
+    ggplot(compdata, aes(x=FIRE, y= bio_change))+ geom_boxplot()
+    
+    #grazing(0=no evidence of grazing, 1= evidence of grazing)
+    compdata$GRAZING<- as.factor(compdata$GRAZING)
+    compdata <- compdata[!is.na(compdata$GRAZING),]
+    ggplot(compdata, aes(x=GRAZING, y= bio_change))+ geom_boxplot()
+    
+    #ecological subsection
+    compdata$ECOSUBCD<- as.factor(compdata$ECOSUBCD)
+    ggplot(compdata, aes(x=ECOSUBCD, y= bio_change))+ geom_boxplot()
+    
+    #owner class code
+    compdata$OWNCD<- as.factor(compdata$OWNCD)
+    ggplot(compdata, aes(x=OWNCD, y= bio_change))+ geom_boxplot()
+    
+    #crown class code
+    compdata$CCLCD<- as.factor(compdata$CCLCD)
+    ggplot(compdata, aes(x=CCLCD, y= bio_change))+ geom_boxplot()
+    
+    #site productivity class code
+    compdata$SITECLCD<- as.factor(compdata$SITECLCD)
+    ggplot(compdata, aes(x=SITECLCD, y= bio_change))+ geom_boxplot()
+    
+    #stand structure
+    compdata$STAND_STRUC<- as.factor(compdata$STAND_STRUC)
+    ggplot(compdata, aes(x=STAND_STRUC, y= bio_change))+ geom_boxplot()
