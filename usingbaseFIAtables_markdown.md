@@ -14,79 +14,8 @@ loading libraries
 ```r
 library(rFIA)
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 library(tidyverse)
-```
-
-```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
-```
-
-```
-## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.0.6     v stringr 1.4.0
-## v tidyr   1.1.2     v forcats 0.5.1
-## v readr   1.4.0
-```
-
-```
-## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
-
-```r
 library(vegan)
-```
-
-```
-## Warning: package 'vegan' was built under R version 4.0.5
-```
-
-```
-## Loading required package: permute
-```
-
-```
-## Warning: package 'permute' was built under R version 4.0.5
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## This is vegan 2.5-7
-```
-
-```
-## 
-## Attaching package: 'vegan'
-```
-
-```
-## The following object is masked from 'package:rFIA':
-## 
-##     diversity
 ```
 making a space to work out of
 
@@ -1424,35 +1353,12 @@ smeandata <- smeandata %>% mutate(lower = (mean - 1.96* se(x=mean)))
 ## Making diversity graphs agaist biochange!
 
 species richness and change in biomass
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 
 shannons index and change in biomass
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
 mean change in biomass at each species richness
-
-```
-## Warning: `fun.y` is deprecated. Use `fun` instead.
-```
-
-```
-## Warning: Removed 1884 rows containing non-finite values (stat_boxplot).
-```
-
-```
-## Warning: Removed 1884 rows containing non-finite values (stat_summary).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 #other graphs using biochange
@@ -1463,19 +1369,11 @@ continuous graphs
     ggplot(compdata, aes(x=CR, y= bio_change))+ geom_jitter()
 ```
 
-```
-## Warning: Removed 8070 rows containing missing values (geom_point).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 ```r
     #longitude
     ggplot(compdata, aes(x=LON, y= bio_change))+ geom_point()
-```
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-2.png)<!-- -->
@@ -1485,19 +1383,11 @@ continuous graphs
     ggplot(compdata, aes(x=ELEV, y= bio_change))+ geom_point()
 ```
 
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-3.png)<!-- -->
 
 ```r
     #stand age
     ggplot(compdata, aes(x=STDAGE, y= bio_change))+ geom_point()
-```
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-4.png)<!-- -->
@@ -1507,10 +1397,6 @@ continuous graphs
     ggplot(compdata, aes(x=SICOND, y= bio_change))+ geom_point()
 ```
 
-```
-## Warning: Removed 11265 rows containing missing values (geom_point).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-5.png)<!-- -->
 
 ```r
@@ -1518,59 +1404,8 @@ continuous graphs
     ggplot(compdata, aes(x=RD, y= bio_change))+ geom_point()
 ```
 
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
 ![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-6.png)<!-- -->
 
 categorical graphs
-
-```
-## Warning: Removed 1884 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-2.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-3.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-4.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-5.png)<!-- -->
-
-```
-## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-6.png)<!-- -->
-
-```
-## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-7.png)<!-- -->
-
-```
-## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-8.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-1.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-2.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-3.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-4.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-5.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-6.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-7.png)<!-- -->![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-8.png)<!-- -->
 
