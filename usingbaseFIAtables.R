@@ -476,6 +476,18 @@ data1519<- data1519 %>% select(-c(HT, INVYR))
 data1519<- data1519 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 
+
+#going through the outlier plots
+test1217 <- data1217 %>% filter(COUNTY_PLOT== "157_55")
+test1119<- data1119 %>% filter(COUNTY_PLOT== "35_67")
+test0916<- data0916 %>% filter(COUNTY_PLOT=="47_91")
+test1318 <- data1318 %>% filter(COUNTY_PLOT=="107_30")
+test1319<- data1319 %>% filter(COUNTY_PLOT=="89_76")
+test1418 <- data1418 %>% filter(COUNTY_PLOT=="153_105")
+test1217 <- data1217 %>% filter(COUNTY_PLOT=="67_49")
+test1218<- data1218 %>% filter(COUNTY_PLOT=="43_4")
+test1016 <- data1016 %>% filter(COUNTY_PLOT=="71_11")
+
 # merging COND filter cols ------------------------------------------------------------
 #ok so now we are going to add the cols from COND that we want to filter by then filter then remove
 
@@ -1296,7 +1308,6 @@ compdata$ECOSUBCD <- plot_tab$ECOSUBCD[match(compdata$COUNTY_PLOT, plot_tab$COUN
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 
 #lets compute shannon's index
-?diversity
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(SPCD, index = "shannon")) %>% ungroup()
 
 # testing graphs ----------------------------------------------------------
@@ -1331,49 +1342,50 @@ ggplot(compdata, aes(x=S, y = bio_change))+ geom_boxplot()+stat_summary(fun.y=me
 #other graphs to look at
   #numerical (continuous)
     #compacted crown ration
-    ggplot(compdata, aes(x=CR, y= bio_change))+ geom_point()
+    ggplot(compdata, aes(x=CR, y= H))+ geom_jitter()
     #longitude
-    ggplot(compdata, aes(x=LON, y= bio_change))+ geom_point()
+    ggplot(compdata, aes(x=LON, y= S))+ geom_point()
     #elevation
-    ggplot(compdata, aes(x=ELEV, y= bio_change))+ geom_point()
+    ggplot(compdata, aes(x=ELEV, y= S))+ geom_point()
     #stand age
-    ggplot(compdata, aes(x=STDAGE, y= bio_change))+ geom_point()
+    ggplot(compdata, aes(x=STDAGE, y= S))+ geom_point()
     #site index
-    ggplot(compdata, aes(x=SICOND, y= bio_change))+ geom_point()
+    ggplot(compdata, aes(x=SICOND, y= H))+ geom_point()
     #distance to improved road
-    ggplot(compdata, aes(x=RD, y= bio_change))+ geom_point()
+    ggplot(compdata, aes(x=RD, y= S))+ geom_point()
   
   #categorical
-    #physiographic class codd
+    #physiographic class code
     compdata$PHYSCLCD<- as.factor(compdata$PHYSCLCD)
-    ggplot(compdata, aes(x=PHYSCLCD, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=PHYSCLCD, y= S))+ geom_boxplot()
     
     #fire (0=no evidence of fire, 1= evidence of fire)
     compdata$FIRE<- as.factor(compdata$FIRE)
     compdata <- compdata[!is.na(compdata$FIRE),]
-    ggplot(compdata, aes(x=FIRE, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=FIRE, y= S))+ geom_boxplot()
     
     #grazing(0=no evidence of grazing, 1= evidence of grazing)
     compdata$GRAZING<- as.factor(compdata$GRAZING)
     compdata <- compdata[!is.na(compdata$GRAZING),]
-    ggplot(compdata, aes(x=GRAZING, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=GRAZING, y= S))+ geom_boxplot()
     
     #ecological subsection
     compdata$ECOSUBCD<- as.factor(compdata$ECOSUBCD)
-    ggplot(compdata, aes(x=ECOSUBCD, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=ECOSUBCD, y= S))+ geom_boxplot()
     
     #owner class code
     compdata$OWNCD<- as.factor(compdata$OWNCD)
-    ggplot(compdata, aes(x=OWNCD, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=OWNCD, y= H))+ geom_boxplot()
     
     #crown class code
     compdata$CCLCD<- as.factor(compdata$CCLCD)
-    ggplot(compdata, aes(x=CCLCD, y= bio_change))+ geom_boxplot()
+    compdata <- compdata[!is.na(compdata$CCLCD),]
+    ggplot(compdata, aes(x=CCLCD, y= S))+ geom_boxplot()
     
     #site productivity class code
     compdata$SITECLCD<- as.factor(compdata$SITECLCD)
-    ggplot(compdata, aes(x=SITECLCD, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=SITECLCD, y= S))+ geom_boxplot()
     
     #stand structure
     compdata$STAND_STRUC<- as.factor(compdata$STAND_STRUC)
-    ggplot(compdata, aes(x=STAND_STRUC, y= bio_change))+ geom_boxplot()
+    ggplot(compdata, aes(x=STAND_STRUC, y= S))+ geom_boxplot()
