@@ -569,6 +569,22 @@ data1519<- data1519 %>% select(-c(HT, INVYR))
 data1519<- data1519 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 ```
+##removing outlier plots
+
+```r
+#removing plots from data
+data1217 <- data1217 %>% filter(COUNTY_PLOT != "157_55")
+data1119 <- data1119 %>% filter(COUNTY_PLOT != "35_67")
+data0916 <- data0916 %>% filter(COUNTY_PLOT != "47_91")
+data1318 <- data1318 %>% filter(COUNTY_PLOT != "107_30")
+data1319 <- data1319 %>% filter(COUNTY_PLOT != "89_76")
+data1319 <- data1319 %>% filter(COUNTY_PLOT != "79_26")
+data1418 <- data1418 %>% filter(COUNTY_PLOT != "153_105")
+data1217 <- data1217 %>% filter(COUNTY_PLOT != "67_49")
+data1218 <- data1218 %>% filter(COUNTY_PLOT != "43_3")
+data1016 <- data1016 %>% filter(COUNTY_PLOT != "71_11")
+```
+
 
 ## Adding columns from COND to filter then removing them
 
@@ -1429,7 +1445,7 @@ species richness and change in biomass
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
 shannons index and change in biomass
 
@@ -1437,7 +1453,7 @@ shannons index and change in biomass
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 mean change in biomass at each species richness
 
@@ -1453,7 +1469,7 @@ mean change in biomass at each species richness
 ## Warning: Removed 1884 rows containing non-finite values (stat_summary).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 #other graphs using biochange
 continuous graphs
@@ -1464,10 +1480,10 @@ continuous graphs
 ```
 
 ```
-## Warning: Removed 8070 rows containing missing values (geom_point).
+## Warning: Removed 8037 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 
 ```r
     #longitude
@@ -1478,7 +1494,7 @@ continuous graphs
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-2.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-2.png)<!-- -->
 
 ```r
     #elevation
@@ -1489,7 +1505,7 @@ continuous graphs
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-3.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-3.png)<!-- -->
 
 ```r
     #stand age
@@ -1500,7 +1516,7 @@ continuous graphs
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-4.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-4.png)<!-- -->
 
 ```r
     #site index
@@ -1508,10 +1524,10 @@ continuous graphs
 ```
 
 ```
-## Warning: Removed 11265 rows containing missing values (geom_point).
+## Warning: Removed 11182 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-5.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-5.png)<!-- -->
 
 ```r
     #distance to improved road
@@ -1522,7 +1538,7 @@ continuous graphs
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-6.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-6.png)<!-- -->
 
 categorical graphs
 
@@ -1530,47 +1546,47 @@ categorical graphs
 ## Warning: Removed 1884 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 ```
 ## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-2.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-2.png)<!-- -->
 
 ```
 ## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-3.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-3.png)<!-- -->
 
 ```
 ## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-4.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-4.png)<!-- -->
 
 ```
 ## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-5.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-5.png)<!-- -->
 
 ```
 ## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-6.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-6.png)<!-- -->
 
 ```
 ## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-7.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-7.png)<!-- -->
 
 ```
 ## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-8.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-8.png)<!-- -->
 

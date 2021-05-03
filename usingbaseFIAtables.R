@@ -477,6 +477,8 @@ data1519<- data1519 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 
 
+# removing outliar plots --------------------------------------------------
+
 #going through the outlier plots
 test1217 <- data1217 %>% filter(COUNTY_PLOT== "157_55")
 test1119<- data1119 %>% filter(COUNTY_PLOT== "35_67")
@@ -487,6 +489,18 @@ test1418 <- data1418 %>% filter(COUNTY_PLOT=="153_105")
 test1217 <- data1217 %>% filter(COUNTY_PLOT=="67_49")
 test1218<- data1218 %>% filter(COUNTY_PLOT=="43_4")
 test1016 <- data1016 %>% filter(COUNTY_PLOT=="71_11")
+
+#removing plots from data
+data1217 <- data1217 %>% filter(COUNTY_PLOT != "157_55")
+data1119 <- data1119 %>% filter(COUNTY_PLOT != "35_67")
+data0916 <- data0916 %>% filter(COUNTY_PLOT != "47_91")
+data1318 <- data1318 %>% filter(COUNTY_PLOT != "107_30")
+data1319 <- data1319 %>% filter(COUNTY_PLOT != "89_76")
+data1319 <- data1319 %>% filter(COUNTY_PLOT != "79_26")
+data1418 <- data1418 %>% filter(COUNTY_PLOT != "153_105")
+data1217 <- data1217 %>% filter(COUNTY_PLOT != "67_49")
+data1218 <- data1218 %>% filter(COUNTY_PLOT != "43_3")
+data1016 <- data1016 %>% filter(COUNTY_PLOT != "71_11")
 
 # merging COND filter cols ------------------------------------------------------------
 #ok so now we are going to add the cols from COND that we want to filter by then filter then remove
