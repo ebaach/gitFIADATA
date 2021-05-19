@@ -15,7 +15,7 @@ MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
-
+SP_NAME <- read_csv("REF_SPECIES.csv")
 # Filtering Tables --------------------------------------------------------
 
 
@@ -478,17 +478,6 @@ data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 
 
 # removing outliar plots --------------------------------------------------
-
-#going through the outlier plots
-test1217 <- data1217 %>% filter(COUNTY_PLOT== "157_55")
-test1119<- data1119 %>% filter(COUNTY_PLOT== "35_67")
-test0916<- data0916 %>% filter(COUNTY_PLOT=="47_91")
-test1318 <- data1318 %>% filter(COUNTY_PLOT=="107_30")
-test1319<- data1319 %>% filter(COUNTY_PLOT=="89_76")
-test1418 <- data1418 %>% filter(COUNTY_PLOT=="153_105")
-test1217 <- data1217 %>% filter(COUNTY_PLOT=="67_49")
-test1218<- data1218 %>% filter(COUNTY_PLOT=="43_4")
-test1016 <- data1016 %>% filter(COUNTY_PLOT=="71_11")
 
 #removing plots from data
 data1217 <- data1217 %>% filter(COUNTY_PLOT != "157_55")
@@ -1298,6 +1287,10 @@ mer1519 <- bio1519 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD'
 #now for the complete merge
 compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, mer1116, mer1117, mer1118, mer1119, mer1216, mer1217, mer1218, mer1219, mer1318, mer1319, mer1418, mer1419, mer1518, mer1519)
 
+#removing unknown tree species
+compdata<- compdata %>% filter(SPCD != "998")
+compdata<- compdata %>% filter(SPCD != "999")
+
 # adding descriptive cols  ------------------------------
 #COND
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
@@ -1310,7 +1303,6 @@ compdata$FIRE <- cond_tab$FIRE_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_P
 compdata$GRAZING <- cond_tab$GRAZING_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 compdata$STAND_STRUC <- cond_tab$STAND_STRUCTURE_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 
-
 #PLOT
 compdata$LAT <- plot_tab$LAT[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$LON <- plot_tab$LON[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
@@ -1318,19 +1310,49 @@ compdata$ELEV<-plot_tab$ELEV[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$RD <- plot_tab$RDDISTCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$ECOSUBCD <- plot_tab$ECOSUBCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 
-#lets compute species richness(S)
-compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
+#SP_NAME
+compdata$commonname <- SP_NAME$COMMON_NAME[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$genus <- SP_NAME$GENUS[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$species <- SP_NAME$SPECIES[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$sp_symbol <- SP_NAME$SPECIES_SYMBOL[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$sci_name <-paste(compdata$genus,compdata$species,sep="-")
+
+#lets compute species richness
+compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(sp_symbol)) %>% ungroup()
 
 #lets compute shannon's index
-compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(SPCD, index = "shannon")) %>% ungroup()
+
+# compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(sp_symbol, index = "shannon")) %>% ungroup()
+
+# figuring out shannon div issues -----------------------------------------------------
+
+#shan div calcs??----> ask Austin if looks correct
+test<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,sci_name,sp_symbol,commonname))
+test<- test %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
+test<- test %>% group_by(COUNTY_PLOT, sp_symbol) %>% mutate(indsp = n()) %>% ungroup()
+test<- test %>% mutate(p = indsp/totind)
+test<- test %>% mutate(plnp = p*log(p))
+test<- test %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(plnp)) %>% ungroup()
+test<- test %>% mutate(H= -1*summ)
+
+ggplot(test, aes(x=S, y=H))+ geom_point()
+summary(test$H)
+
+test$S<- as.factor(test$S)
+ggplot(test, aes(x=S, y = H))+ geom_boxplot()+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
 
 # testing graphs ----------------------------------------------------------
 
 #species richness
 ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
 
+test11_83<- compdata %>% filter(COUNTY_PLOT=="11_83")
+diversity(test$SPCD, index = "shannon")
+
 #shannons
 ggplot(compdata, aes(x=H, y= bio_change))+ geom_point()
+
+ggplot(compdata, aes(x=S, y = H))+ geom_point()
 
 n_distinct(compdata$COUNTY_PLOT)
 #1173 total plots
