@@ -6,7 +6,7 @@
 library(rFIA)
 library(dplyr)
 library(tidyverse)
-library(vegan)
+# library(vegan)
 
 #use this to load
 MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
@@ -477,7 +477,7 @@ data1519<- data1519 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 
 
-# removing outliar plots --------------------------------------------------
+# removing outlier plots --------------------------------------------------
 
 #removing plots from data
 data1217 <- data1217 %>% filter(COUNTY_PLOT != "157_55")
@@ -488,7 +488,7 @@ data1319 <- data1319 %>% filter(COUNTY_PLOT != "89_76")
 data1319 <- data1319 %>% filter(COUNTY_PLOT != "79_26")
 data1418 <- data1418 %>% filter(COUNTY_PLOT != "153_105")
 data1217 <- data1217 %>% filter(COUNTY_PLOT != "67_49")
-data1218 <- data1218 %>% filter(COUNTY_PLOT != "43_3")
+data1218 <- data1218 %>% filter(COUNTY_PLOT != "43_4")
 data1016 <- data1016 %>% filter(COUNTY_PLOT != "71_11")
 
 # merging COND filter cols ------------------------------------------------------------
@@ -1129,30 +1129,6 @@ bio1518$bio_change <- ((bio1518$sumbio18- bio1518$sumbio15)/3)
 bio1519<- bio1519 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio15=sum(bio15),sumbio19=sum(bio19))
 bio1519$bio_change <- ((bio1519$sumbio19- bio1519$sumbio15)/4)
 
-
-# adding cols i want ------------------------------------------------------
-#making new col with county plot and spcd
-bio0916$CNTY_PLT_SPCD<-paste(bio0916$COUNTY_PLOT,data0916$SPCD,sep="#")
-bio0917$CNTY_PLT_SPCD<-paste(bio0917$COUNTY_PLOT,data0917$SPCD,sep="#")
-bio0918$CNTY_PLT_SPCD<-paste(bio0918$COUNTY_PLOT,data0918$SPCD,sep="#")
-bio1016$CNTY_PLT_SPCD<-paste(bio1016$COUNTY_PLOT,data1016$SPCD,sep="#")
-bio1018$CNTY_PLT_SPCD<-paste(bio1018$COUNTY_PLOT,data1018$SPCD,sep="#")
-bio1019$CNTY_PLT_SPCD<-paste(bio1019$COUNTY_PLOT,data1019$SPCD,sep="#")
-bio1116$CNTY_PLT_SPCD<-paste(bio1116$COUNTY_PLOT,data1116$SPCD,sep="#")
-bio1117$CNTY_PLT_SPCD<-paste(bio1117$COUNTY_PLOT,data1117$SPCD,sep="#")
-bio1118$CNTY_PLT_SPCD<-paste(bio1118$COUNTY_PLOT,data1118$SPCD,sep="#")
-bio1119$CNTY_PLT_SPCD<-paste(bio1119$COUNTY_PLOT,data1119$SPCD,sep="#")
-bio1216$CNTY_PLT_SPCD<-paste(bio1216$COUNTY_PLOT,data1216$SPCD,sep="#")
-bio1217$CNTY_PLT_SPCD<-paste(bio1217$COUNTY_PLOT,data1217$SPCD,sep="#")
-bio1218$CNTY_PLT_SPCD<-paste(bio1218$COUNTY_PLOT,data1218$SPCD,sep="#")
-bio1219$CNTY_PLT_SPCD<-paste(bio1219$COUNTY_PLOT,data1219$SPCD,sep="#")
-bio1318$CNTY_PLT_SPCD<-paste(bio1318$COUNTY_PLOT,data1318$SPCD,sep="#")
-bio1319$CNTY_PLT_SPCD<-paste(bio1319$COUNTY_PLOT,data1319$SPCD,sep="#")
-bio1418$CNTY_PLT_SPCD<-paste(bio1418$COUNTY_PLOT,data1418$SPCD,sep="#")
-bio1419$CNTY_PLT_SPCD<-paste(bio1419$COUNTY_PLOT,data1419$SPCD,sep="#")
-bio1518$CNTY_PLT_SPCD<-paste(bio1518$COUNTY_PLOT,data1518$SPCD,sep="#")
-bio1519$CNTY_PLT_SPCD<-paste(bio1519$COUNTY_PLOT,data1519$SPCD,sep="#")
-
 # Species code ID -------------------------------------------------------
 #SPCD  COMMON_NAME        B0           B1
 
@@ -1263,26 +1239,26 @@ bio1519$CNTY_PLT_SPCD<-paste(bio1519$COUNTY_PLOT,data1519$SPCD,sep="#")
 
 
 # merging all years and plots ---------------------------------------------
-mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer0917 <- bio0917 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer0918 <- bio0918 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1016 <- bio1016 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1018 <- bio1018 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1019 <- bio1019 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1116 <- bio1116 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1117 <- bio1117 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1118 <- bio1118 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1119 <- bio1119 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1216 <- bio1216 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1217 <- bio1217 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1218 <- bio1218 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1219 <- bio1219 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1318 <- bio1318 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1319 <- bio1319 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1418 <- bio1418 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1419 <- bio1419 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1518 <- bio1518 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
-mer1519 <- bio1519 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
+mer0916 <- bio0916 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer0917 <- bio0917 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer0918 <- bio0918 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1016 <- bio1016 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1018 <- bio1018 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1019 <- bio1019 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1116 <- bio1116 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1117 <- bio1117 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1118 <- bio1118 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1119 <- bio1119 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1216 <- bio1216 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1217 <- bio1217 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1218 <- bio1218 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1219 <- bio1219 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1318 <- bio1318 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1319 <- bio1319 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1418 <- bio1418 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1419 <- bio1419 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1518 <- bio1518 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
+mer1519 <- bio1519 %>% select('COUNTY_PLOT', 'bio_change','SPCD')
 
 #now for the complete merge
 compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, mer1116, mer1117, mer1118, mer1119, mer1216, mer1217, mer1218, mer1219, mer1318, mer1319, mer1418, mer1419, mer1518, mer1519)
@@ -1292,6 +1268,35 @@ compdata<- compdata %>% filter(SPCD != "998")
 compdata<- compdata %>% filter(SPCD != "999")
 
 # adding descriptive cols  ------------------------------
+#SP_NAME
+compdata$commonname <- SP_NAME$COMMON_NAME[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$genus <- SP_NAME$GENUS[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$species <- SP_NAME$SPECIES[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$sp_symbol <- SP_NAME$SPECIES_SYMBOL[match(compdata$SPCD, SP_NAME$SPCD)]
+compdata$sci_name <-paste(compdata$genus,compdata$species,sep="-")
+compdata$CNTY_PLT_SPCD<-paste(compdata$COUNTY_PLOT,compdata$SPCD,sep="#")
+
+#lets compute species richness
+compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(sp_symbol)) %>% ungroup()
+
+#lets compute shannon's index
+shdata<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,sci_name,sp_symbol,commonname,bio_change))
+    #total individuals
+    shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
+    #number of each species
+    shdata<- shdata %>% group_by(COUNTY_PLOT, sp_symbol) %>% mutate(indsp = n()) %>% ungroup()
+    #ratio
+    shdata<- shdata %>% mutate(p = indsp/totind)
+    #pln(p)
+    shdata<- shdata %>% mutate(plnp = p*log(p))
+    #sum1
+    shdata<- shdata %>% group_by(COUNTY_PLOT,sp_symbol) %>% summarise(sum1 = mean(plnp))%>% ungroup()
+    #final sum
+    shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(sum1)) %>% ungroup()
+    #final step
+    shdata<- shdata %>% mutate(H= -1*summ)
+compdata$H <- shdata$H[match(compdata$COUNTY_PLOT,shdata$COUNTY_PLOT)]
+
 #COND
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
 compdata$SITECLCD <- cond_tab$SITECLCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
@@ -1310,47 +1315,41 @@ compdata$ELEV<-plot_tab$ELEV[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$RD <- plot_tab$RDDISTCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$ECOSUBCD <- plot_tab$ECOSUBCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 
-#SP_NAME
-compdata$commonname <- SP_NAME$COMMON_NAME[match(compdata$SPCD, SP_NAME$SPCD)]
-compdata$genus <- SP_NAME$GENUS[match(compdata$SPCD, SP_NAME$SPCD)]
-compdata$species <- SP_NAME$SPECIES[match(compdata$SPCD, SP_NAME$SPCD)]
-compdata$sp_symbol <- SP_NAME$SPECIES_SYMBOL[match(compdata$SPCD, SP_NAME$SPCD)]
-compdata$sci_name <-paste(compdata$genus,compdata$species,sep="-")
-
-#lets compute species richness
-compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(sp_symbol)) %>% ungroup()
-
-#lets compute shannon's index
-
-# compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(sp_symbol, index = "shannon")) %>% ungroup()
 
 # figuring out shannon div issues -----------------------------------------------------
 
 #shan div calcs??----> ask Austin if looks correct
-test<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,sci_name,sp_symbol,commonname))
-test<- test %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
-test<- test %>% group_by(COUNTY_PLOT, sp_symbol) %>% mutate(indsp = n()) %>% ungroup()
-test<- test %>% mutate(p = indsp/totind)
-test<- test %>% mutate(plnp = p*log(p))
-test<- test %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(plnp)) %>% ungroup()
-test<- test %>% mutate(H= -1*summ)
+# test<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,sci_name,sp_symbol,commonname,bio_change))
+# 
+# test<- test %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
+# 
+# test<- test %>% group_by(COUNTY_PLOT, sp_symbol) %>% mutate(indsp = n()) %>% ungroup()
+# 
+# test<- test %>% mutate(p = indsp/totind)
+# test<- test %>% mutate(plnp = p*log(p))
+# 
+# 
+# test<- test %>% group_by(COUNTY_PLOT,sp_symbol) %>% summarise(sum1 = mean(plnp))%>% ungroup()
+# test<- test %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(sum1)) %>% ungroup()
+# test<- test %>% mutate(H= -1*summ)
 
-ggplot(test, aes(x=S, y=H))+ geom_point()
-summary(test$H)
+# compdata$H <- test$H[match(compdata$COUNTY_PLOT,test$COUNTY_PLOT)]
 
-test$S<- as.factor(test$S)
-ggplot(test, aes(x=S, y = H))+ geom_boxplot()+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
+# ggplot(test, aes(x=S, y=H))+ geom_point()
+# summary(test$H)
+# 
+# test$S<- as.factor(test$S)
+# ggplot(test, aes(x=S, y = H))+ geom_boxplot()+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
+# 
+# ggplot(test, aes(x=H, y= bio_change))+ geom_point()
 
 # testing graphs ----------------------------------------------------------
 
 #species richness
-ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
-
-test11_83<- compdata %>% filter(COUNTY_PLOT=="11_83")
-diversity(test$SPCD, index = "shannon")
+ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()+ geom_smooth(method = 'lm')
 
 #shannons
-ggplot(compdata, aes(x=H, y= bio_change))+ geom_point()
+ggplot(compdata, aes(x=H, y= bio_change))+ geom_point() +geom_smooth(method = 'lm')
 
 ggplot(compdata, aes(x=S, y = H))+ geom_point()
 
@@ -1372,8 +1371,21 @@ smeandata <- smeandata %>% mutate(lower = (mean - 1.96* se(x=mean)))
 
 ggplot(smeandata, aes(x=S, y= mean))+ geom_point()+ geom_errorbar(aes(ymin=upper, ymax=lower))
 
-compdata$S<- as.factor(compdata$S)
-ggplot(compdata, aes(x=S, y = bio_change))+ geom_boxplot()+stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
+compdata$S<- as.numeric(compdata$S)
+
+ggplot(newdata, aes(x=S, y = bio))+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red',na.rm = TRUE)
+
+newdata<- compdata %>% group_by(COUNTY_PLOT) %>% summarise(S= mean(S), H = mean(H), bio= mean(bio_change))
+
+ggplot(newdata, aes(x=S, y = bio))+ stat_summary(fun.data=mean_cl_boot,position=position_dodge(width=.5), geom="line", na.rm = TRUE)+
+  stat_summary(fun.data=mean_cl_boot, position=position_dodge(width=.5))
+
+library(Hmisc)
+
+checking<- compdata %>% filter(S=="1")
+checking<- checking %>% group_by(COUNTY_PLOT) %>% summarise(x = mean(bio_change))
+
+mean(checking$x, na.rm = TRUE)
 
 #other graphs to look at
   #numerical (continuous)
