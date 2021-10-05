@@ -42,10 +42,14 @@ library(tidyverse)
 ```
 
 ```
-## v ggplot2 3.3.3     v purrr   0.3.4
+## v ggplot2 3.3.5     v purrr   0.3.4
 ## v tibble  3.0.6     v stringr 1.4.0
 ## v tidyr   1.1.2     v forcats 0.5.1
 ## v readr   1.4.0
+```
+
+```
+## Warning: package 'ggplot2' was built under R version 4.0.5
 ```
 
 ```
@@ -96,9 +100,53 @@ MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 loading tables to use
 
 ```r
+FUNC_GRP <- read.csv("func_data.csv",header = T)
 TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
+SP_NAME <- read_csv("REF_SPECIES.csv")
+```
+
+```
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   .default = col_double(),
+##   COMMON_NAME = col_character(),
+##   GENUS = col_character(),
+##   SPECIES = col_character(),
+##   VARIETY = col_character(),
+##   SUBSPECIES = col_character(),
+##   SPECIES_SYMBOL = col_character(),
+##   EXISTS_IN_NCRS = col_character(),
+##   EXISTS_IN_NERS = col_character(),
+##   EXISTS_IN_PNWRS = col_character(),
+##   EXISTS_IN_RMRS = col_character(),
+##   EXISTS_IN_SRS = col_character(),
+##   SITETREE = col_character(),
+##   SFTWD_HRDWD = col_character(),
+##   ST_EXISTS_IN_NCRS = col_character(),
+##   ST_EXISTS_IN_NERS = col_character(),
+##   ST_EXISTS_IN_PNWRS = col_character(),
+##   ST_EXISTS_IN_RMRS = col_character(),
+##   ST_EXISTS_IN_SRS = col_logical(),
+##   CORE = col_character(),
+##   EAST = col_character()
+##   # ... with 9 more columns
+## )
+## i Use `spec()` for the full column specifications.
+```
+
+```
+## Warning: 22 parsing failures.
+##  row              col           expected actual              file
+## 1055 ST_EXISTS_IN_SRS 1/0/T/F/TRUE/FALSE      X 'REF_SPECIES.csv'
+## 1058 ST_EXISTS_IN_SRS 1/0/T/F/TRUE/FALSE      X 'REF_SPECIES.csv'
+## 1059 ST_EXISTS_IN_SRS 1/0/T/F/TRUE/FALSE      X 'REF_SPECIES.csv'
+## 1069 ST_EXISTS_IN_SRS 1/0/T/F/TRUE/FALSE      X 'REF_SPECIES.csv'
+## 1076 ST_EXISTS_IN_SRS 1/0/T/F/TRUE/FALSE      X 'REF_SPECIES.csv'
+## .... ................ .................. ...... .................
+## See problems(...) for more details.
 ```
 ## filtering
 tree table
@@ -1422,171 +1470,90 @@ compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %
 lets calculate shannon's index
 
 ```r
-compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(SPCD, index = "shannon")) %>% ungroup()
+shdata<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,bio_change))
+    #total individuals
+    shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
+    #number of each species
+    shdata<- shdata %>% group_by(COUNTY_PLOT, SPCD) %>% mutate(indsp = n()) %>% ungroup()
+    #ratio
+    shdata<- shdata %>% mutate(p = indsp/totind)
+    #pln(p)
+    shdata<- shdata %>% mutate(plnp = p*log(p))
+    #sum1
+    shdata<- shdata %>% group_by(COUNTY_PLOT,SPCD) %>% summarise(sum1 = mean(plnp))%>% ungroup()
 ```
 
-calculating mean biochange and 95% interval
+```
+## `summarise()` has grouped output by 'COUNTY_PLOT'. You can override using the `.groups` argument.
+```
 
 ```r
-#making function to compute se for errorbars
-se <- function(x) sqrt(var(x)/length(x))
-
-smeandata<- group_by(compdata,S) %>% summarise(mean= mean(bio_change, na.rm = TRUE))
-smeandata <- smeandata %>% mutate(upper = (mean + 1.96* se(x=mean)))
-smeandata <- smeandata %>% mutate(lower = (mean - 1.96* se(x=mean)))
+    #final sum
+    shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(sum1)) %>% ungroup()
+    #final step
+    shdata<- shdata %>% mutate(H= -1*summ)
+compdata$H <- shdata$H[match(compdata$COUNTY_PLOT,shdata$COUNTY_PLOT)]
 ```
 
-
-## Making diversity graphs agaist biochange!
-
-species richness and change in biomass
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
-
-shannons index and change in biomass
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
-
-mean change in biomass at each species richness
-
-```
-## Warning: `fun.y` is deprecated. Use `fun` instead.
-```
-
-```
-## Warning: Removed 1884 rows containing non-finite values (stat_boxplot).
-```
-
-```
-## Warning: Removed 1884 rows containing non-finite values (stat_summary).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
-
-#other graphs using biochange
-continuous graphs
+functional traits
 
 ```r
-#compacted crown ration
-    ggplot(compdata, aes(x=CR, y= bio_change))+ geom_jitter()
+#FROM FUNC DATA
+compdata$phenology<- FUNC_GRP$phenology[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$n_fixer<- FUNC_GRP$N_fixer[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$specific_gravity<- FUNC_GRP$specific_gravity[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$maxheight<- FUNC_GRP$max_height_m[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fruit_type<- FUNC_GRP$fruit_type[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fruit_length<- FUNC_GRP$fruit_length_cm[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$growth_rate<- FUNC_GRP$growth_rate[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$life_span<- FUNC_GRP$life_span[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$shade_tol<- FUNC_GRP$shade_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$drought_tol<- FUNC_GRP$drought_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fire_tol<- FUNC_GRP$fire_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$anaerobic_tol<- FUNC_GRP$anaerobic_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
 ```
 
-```
-## Warning: Removed 8037 rows containing missing values (geom_point).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+some test graphs:
 
 ```r
-    #longitude
-    ggplot(compdata, aes(x=LON, y= bio_change))+ geom_point()
+#species richness
+ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()+ geom_smooth(method = )
+```
+
+```
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+```
+
+```
+## Warning: Removed 1884 rows containing non-finite values (stat_smooth).
 ```
 
 ```
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-2.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/init test graphs: S and H with biochange-1.png)<!-- -->
 
 ```r
-    #elevation
-    ggplot(compdata, aes(x=ELEV, y= bio_change))+ geom_point()
+#shannons
+ggplot(compdata, aes(x=H, y= bio_change))+ geom_point() +geom_smooth()
 ```
 
 ```
+## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+```
+
+```
+## Warning: Removed 1884 rows containing non-finite values (stat_smooth).
+
 ## Warning: Removed 1884 rows containing missing values (geom_point).
 ```
 
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-3.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/init test graphs: S and H with biochange-2.png)<!-- -->
 
 ```r
-    #stand age
-    ggplot(compdata, aes(x=STDAGE, y= bio_change))+ geom_point()
+ggplot(compdata, aes(x=S, y = H))+ geom_point()
 ```
 
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-4.png)<!-- -->
-
-```r
-    #site index
-    ggplot(compdata, aes(x=SICOND, y= bio_change))+ geom_point()
-```
-
-```
-## Warning: Removed 11182 rows containing missing values (geom_point).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-5.png)<!-- -->
-
-```r
-    #distance to improved road
-    ggplot(compdata, aes(x=RD, y= bio_change))+ geom_point()
-```
-
-```
-## Warning: Removed 1884 rows containing missing values (geom_point).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-28-6.png)<!-- -->
-
-categorical graphs
-
-```
-## Warning: Removed 1884 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-2.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-3.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-4.png)<!-- -->
-
-```
-## Warning: Removed 863 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-5.png)<!-- -->
-
-```
-## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-6.png)<!-- -->
-
-```
-## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-7.png)<!-- -->
-
-```
-## Warning: Removed 631 rows containing non-finite values (stat_boxplot).
-```
-
-![](usingbaseFIAtables_markdown_files/figure-html/unnamed-chunk-29-8.png)<!-- -->
+![](usingbaseFIAtables_markdown_files/figure-html/init test graphs: S and H with biochange-3.png)<!-- -->
 

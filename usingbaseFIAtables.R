@@ -1,7 +1,6 @@
 
 # Loading -----------------------------------------------------------------
 
-
 #first lets load our packages
 library(rFIA)
 library(dplyr)
@@ -12,6 +11,7 @@ library(tidyverse)
 MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 
 #load tables
+FUNC_GRP <- read.csv("func_data.csv",header = T)
 TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
@@ -1267,7 +1267,7 @@ compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, me
 compdata<- compdata %>% filter(SPCD != "998")
 compdata<- compdata %>% filter(SPCD != "999")
 
-# adding descriptive cols  ------------------------------
+# adding species names  ------------------------------
 #SP_NAME
 compdata$commonname <- SP_NAME$COMMON_NAME[match(compdata$SPCD, SP_NAME$SPCD)]
 compdata$genus <- SP_NAME$GENUS[match(compdata$SPCD, SP_NAME$SPCD)]
@@ -1276,26 +1276,33 @@ compdata$sp_symbol <- SP_NAME$SPECIES_SYMBOL[match(compdata$SPCD, SP_NAME$SPCD)]
 compdata$sci_name <-paste(compdata$genus,compdata$species,sep="-")
 compdata$CNTY_PLT_SPCD<-paste(compdata$COUNTY_PLOT,compdata$SPCD,sep="#")
 
+
+# sp richness and shannons ------------------------------------------------
+
+
 #lets compute species richness
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(sp_symbol)) %>% ungroup()
 
 #lets compute shannon's index
-shdata<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,sci_name,sp_symbol,commonname,bio_change))
+shdata<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,bio_change))
     #total individuals
     shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
     #number of each species
-    shdata<- shdata %>% group_by(COUNTY_PLOT, sp_symbol) %>% mutate(indsp = n()) %>% ungroup()
+    shdata<- shdata %>% group_by(COUNTY_PLOT, SPCD) %>% mutate(indsp = n()) %>% ungroup()
     #ratio
     shdata<- shdata %>% mutate(p = indsp/totind)
     #pln(p)
     shdata<- shdata %>% mutate(plnp = p*log(p))
     #sum1
-    shdata<- shdata %>% group_by(COUNTY_PLOT,sp_symbol) %>% summarise(sum1 = mean(plnp))%>% ungroup()
+    shdata<- shdata %>% group_by(COUNTY_PLOT,SPCD) %>% summarise(sum1 = mean(plnp))%>% ungroup()
     #final sum
     shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(sum1)) %>% ungroup()
     #final step
     shdata<- shdata %>% mutate(H= -1*summ)
 compdata$H <- shdata$H[match(compdata$COUNTY_PLOT,shdata$COUNTY_PLOT)]
+
+# COND and PLOT cols ------------------------------------------------------
+
 
 #COND
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
@@ -1308,6 +1315,7 @@ compdata$FIRE <- cond_tab$FIRE_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_P
 compdata$GRAZING <- cond_tab$GRAZING_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 compdata$STAND_STRUC <- cond_tab$STAND_STRUCTURE_SRS[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
 
+
 #PLOT
 compdata$LAT <- plot_tab$LAT[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$LON <- plot_tab$LON[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
@@ -1315,50 +1323,35 @@ compdata$ELEV<-plot_tab$ELEV[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$RD <- plot_tab$RDDISTCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 compdata$ECOSUBCD <- plot_tab$ECOSUBCD[match(compdata$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
 
+# Functional traits -------------------------------------------------------
 
-# figuring out shannon div issues -----------------------------------------------------
 
-#shan div calcs??----> ask Austin if looks correct
-# test<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,sci_name,sp_symbol,commonname,bio_change))
-# 
-# test<- test %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
-# 
-# test<- test %>% group_by(COUNTY_PLOT, sp_symbol) %>% mutate(indsp = n()) %>% ungroup()
-# 
-# test<- test %>% mutate(p = indsp/totind)
-# test<- test %>% mutate(plnp = p*log(p))
-# 
-# 
-# test<- test %>% group_by(COUNTY_PLOT,sp_symbol) %>% summarise(sum1 = mean(plnp))%>% ungroup()
-# test<- test %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(sum1)) %>% ungroup()
-# test<- test %>% mutate(H= -1*summ)
-
-# compdata$H <- test$H[match(compdata$COUNTY_PLOT,test$COUNTY_PLOT)]
-
-# ggplot(test, aes(x=S, y=H))+ geom_point()
-# summary(test$H)
-# 
-# test$S<- as.factor(test$S)
-# ggplot(test, aes(x=S, y = H))+ geom_boxplot()+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
-# 
-# ggplot(test, aes(x=H, y= bio_change))+ geom_point()
+#FROM FUNC DATA
+compdata$phenology<- FUNC_GRP$phenology[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$n_fixer<- FUNC_GRP$N_fixer[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$specific_gravity<- FUNC_GRP$specific_gravity[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$maxheight<- FUNC_GRP$max_height_m[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fruit_type<- FUNC_GRP$fruit_type[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fruit_length<- FUNC_GRP$fruit_length_cm[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$growth_rate<- FUNC_GRP$growth_rate[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$life_span<- FUNC_GRP$life_span[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$shade_tol<- FUNC_GRP$shade_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$drought_tol<- FUNC_GRP$drought_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fire_tol<- FUNC_GRP$fire_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$anaerobic_tol<- FUNC_GRP$anaerobic_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
 
 # testing graphs ----------------------------------------------------------
 
 #species richness
-ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()+ geom_smooth(method = 'lm')
+ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()+ geom_smooth(method = )
 
 #shannons
-ggplot(compdata, aes(x=H, y= bio_change))+ geom_point() +geom_smooth(method = 'lm')
+ggplot(compdata, aes(x=H, y= bio_change))+ geom_point() +geom_smooth()
 
 ggplot(compdata, aes(x=S, y = H))+ geom_point()
 
 n_distinct(compdata$COUNTY_PLOT)
-#1173 total plots
-smallbio<- compdata %>% filter(bio_change<0)
-summary(smallbio$bio_change)
-n_distinct(smallbio$COUNTY_PLOT)
-#9 plots with biochange less than 0
+#1163 total plots
 
 #mean biochange at each S
 
@@ -1373,11 +1366,16 @@ ggplot(smeandata, aes(x=S, y= mean))+ geom_point()+ geom_errorbar(aes(ymin=upper
 
 compdata$S<- as.numeric(compdata$S)
 
-ggplot(newdata, aes(x=S, y = bio))+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red',na.rm = TRUE)
+ggplot(compdata, aes(x=S, y = bio_change))+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red',na.rm = TRUE)+ geom_smooth()
 
+#one for each level
 newdata<- compdata %>% group_by(COUNTY_PLOT) %>% summarise(S= mean(S), H = mean(H), bio= mean(bio_change))
 
-ggplot(newdata, aes(x=S, y = bio))+ stat_summary(fun.data=mean_cl_boot,position=position_dodge(width=.5), geom="line", na.rm = TRUE)+
+ggplot(newdata, aes(x=S, y = bio))+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red',na.rm = TRUE)+ geom_smooth()
+
+ggplot(newdata, aes(x=H, y = bio))+ stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red',na.rm = TRUE)+ geom_smooth()
+
+ggplot(compdata, aes(x=S, y = bio_change))+ stat_summary(fun.data=mean_cl_boot,position=position_dodge(width=.5), geom="line", na.rm = TRUE)+
   stat_summary(fun.data=mean_cl_boot, position=position_dodge(width=.5))
 
 library(Hmisc)
@@ -1437,3 +1435,17 @@ mean(checking$x, na.rm = TRUE)
     #stand structure
     compdata$STAND_STRUC<- as.factor(compdata$STAND_STRUC)
     ggplot(compdata, aes(x=STAND_STRUC, y= S))+ geom_boxplot()
+    
+    
+
+# exporting names and spcds -----------------------------------------------
+
+expnamedat<- compdata %>% select(SPCD, sci_name, commonname)
+expnamedat<- expnamedat %>% distinct(SPCD, sci_name, commonname)
+
+write.csv(expnamedat, "C:\\Users\\elbaa\\OneDrive\\Desktop\\namedata.csv", row.names = TRUE)
+
+#99 dif species in compdata
+#138 dif species before filtering^^
+
+

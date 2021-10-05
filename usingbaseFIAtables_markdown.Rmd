@@ -12,25 +12,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## setting up
 loading libraries
-```{r}
+```{r libraries}
 library(rFIA)
 library(dplyr)
 library(tidyverse)
 library(vegan)
 ```
 making a space to work out of
-```{r}
+```{r workspace}
 MS <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', inMemory = FALSE)
 ```
 loading tables to use
-```{r}
+```{r table loading}
+FUNC_GRP <- read.csv("func_data.csv",header = T)
 TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'TREE', inMemory = TRUE)
 COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'COND', inMemory = TRUE)
 PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA', tables = 'PLOT', inMemory = TRUE)
+SP_NAME <- read_csv("REF_SPECIES.csv")
 ```
 ## filtering
 tree table
-```{r}
+```{r tree filtering}
 tree_tab <- TREE$TREE
 tree_tab <- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD,CR, CCLCD,SPGRPCD))
 tree_tab <- tree_tab %>% mutate(diam = (2.54 * tree_tab$DIA ))
@@ -39,14 +41,14 @@ tree_tab$DIA<- tree_tab$diam
 tree_tab<- tree_tab %>% select(-c(diam))
 ```
 plot table
-```{r}
+```{r plot filtering}
 plot_tab <- PLOT$PLOT
 plot_tab<- select(plot_tab, c(PLOT, INVYR, COUNTYCD, LAT, LON, ELEV, RDDISTCD, ECOSUBCD))
 plot_tab$COUNTY_PLOT <- paste(plot_tab$COUNTYCD,plot_tab$PLOT, sep="_")
 plot_tab<- plot_tab %>% filter(INVYR>=2009)
 ```
 cond table
-```{r}
+```{r condition filtering}
 cond_tab <- COND$COND
 cond_tab<- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1, SITECLCD, SICOND,PHYSCLCD, FIRE_SRS, GRAZING_SRS, OWNCD, STAND_STRUCTURE_SRS))
 cond_tab<- cond_tab %>% filter(INVYR>=2009)
@@ -55,7 +57,7 @@ cond_tab$COUNTY_PLOT <- paste(cond_tab$COUNTYCD,cond_tab$PLOT, sep="_")
 ```
 ## subsetting by year
 tree
-```{r}
+```{r tree subset by year}
 tree09 <- tree_tab %>% subset(INVYR==2009)
     tree10 <- tree_tab %>% subset(INVYR==2010)
     tree11 <- tree_tab %>% subset(INVYR==2011)
@@ -69,7 +71,7 @@ tree09 <- tree_tab %>% subset(INVYR==2009)
     tree19 <- tree_tab %>% subset(INVYR==2019)
 ```
 plot
-```{r}
+```{r plot subset by year}
 plot09<- plot_tab %>% subset(INVYR==2009)
     plot10<- plot_tab %>% subset(INVYR==2010)
     plot11<- plot_tab %>% subset(INVYR==2011)
@@ -83,7 +85,7 @@ plot09<- plot_tab %>% subset(INVYR==2009)
     plot19<- plot_tab %>% subset(INVYR==2019)
 ```
 cond
-```{r}
+```{r cond subset by year}
  cond09<- cond_tab %>% subset(INVYR==2009)
     cond10<- cond_tab %>% subset(INVYR==2010)
     cond11<- cond_tab %>% subset(INVYR==2011)
@@ -98,7 +100,7 @@ cond
 ```
 
 ## filtering to get matching CN and PREV_TRE_CN
-```{r}
+```{r get PREV_TRE_CN and CN matches}
  #2009 to 2016
     checkdat1609 <- subset(tree16, tree16$PREV_TRE_CN %in% tree09$CN)
     checkdat1609 <- subset(checkdat1609, select = -c(CN))
@@ -202,7 +204,7 @@ cond
     
 ```
 now for the other way around
-```{r}
+```{r get CN and PREV_TRE_CN matches reverse}
 #2009-16
     checkdat0916 <- subset(tree09, tree09$CN %in%  tree16$PREV_TRE_CN)
     checkdat0916 <- subset(checkdat0916, select = -c(PREV_TRE_CN))
@@ -265,7 +267,7 @@ now for the other way around
     checkdat1519 <- subset(checkdat1519, select = -c(PREV_TRE_CN))
 ```
 ## Merging remeasured plots
-```{r}
+```{r init merge for remeasured plots}
 #now we merge the beginning and ending years for each cycle
 
 #2009 to 2016
@@ -490,7 +492,7 @@ data1519<- data1519 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
 data1519$COUNTY_PLOT <- paste(data1519$COUNTYCD,data1519$PLOT, sep="_")
 ```
 ##removing outlier plots
-```{r}
+```{r outlier removal}
 #removing plots from data
 data1217 <- data1217 %>% filter(COUNTY_PLOT != "157_55")
 data1119 <- data1119 %>% filter(COUNTY_PLOT != "35_67")
@@ -506,7 +508,7 @@ data1016 <- data1016 %>% filter(COUNTY_PLOT != "71_11")
 
 
 ## Adding columns from COND to filter then removing them
-```{r}
+```{r STDORGCD TRT and DSTRB filtering}
 #2009-16
 data0916$STDORGCD09 <- cond09$STDORGCD[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
 data0916$STDORGCD16 <- cond16$STDORGCD[match(data0916$COUNTY_PLOT, cond16$COUNTY_PLOT)]
@@ -889,7 +891,7 @@ data1519<- data1519 %>% select(-c(TRT15, TRT19))
 ```
 
 ##biomass function
-```{r}
+```{r biomass function}
 biomass_function <- function(spp, dbh) { 
   case_when(
     spp== 43  ~ exp( -2.7765   +    2.4195 *log(dbh)),                
@@ -996,7 +998,7 @@ biomass_function <- function(spp, dbh) {
 ```
 
 #applying biomass equation
-```{r}
+```{r applying biomass eq}
 #2009-16
 bio0916<- data0916 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = DIA09))
 bio0916<- bio0916 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
@@ -1078,7 +1080,7 @@ bio1519<- data1519 %>% mutate(bio15 = biomass_function(spp = SPCD, dbh = DIA15))
 bio1519<- bio1519 %>% mutate(bio19 = biomass_function(spp = SPCD, dbh = DIA19))
 ```
 #summing biomass for each plot
-```{r}
+```{r summing plot biomass}
 #2009-16
 bio0916<- bio0916 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio09=sum(bio09),sumbio16=sum(bio16))
 bio0916$bio_change <- ((bio0916$sumbio16- bio0916$sumbio09)/7)
@@ -1141,7 +1143,7 @@ bio1519<- bio1519 %>% group_by(COUNTY_PLOT) %>% mutate(sumbio15=sum(bio15),sumbi
 bio1519$bio_change <- ((bio1519$sumbio19- bio1519$sumbio15)/4)
 ```
 #adding cols i want
-```{r}
+```{r adding CNTY_PLT_SPCD}
 #making new col with county plot and spcd
 bio0916$CNTY_PLT_SPCD<-paste(bio0916$COUNTY_PLOT,data0916$SPCD,sep="#")
 bio0917$CNTY_PLT_SPCD<-paste(bio0917$COUNTY_PLOT,data0917$SPCD,sep="#")
@@ -1166,7 +1168,7 @@ bio1519$CNTY_PLT_SPCD<-paste(bio1519$COUNTY_PLOT,data1519$SPCD,sep="#")
 ```
 
 #species reference list
-```{r}
+```{r sp. ref list}
 #SPCD  COMMON_NAME        B0           B1
 
 #43  = Atl.white cedar  -2.7765       2.4195                
@@ -1276,7 +1278,7 @@ bio1519$CNTY_PLT_SPCD<-paste(bio1519$COUNTY_PLOT,data1519$SPCD,sep="#")
 
 
 ## Merging all plots and years
-```{r}
+```{r comp merge}
 mer0916 <- bio0916 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
 mer0917 <- bio0917 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
 mer0918 <- bio0918 %>% select('CNTY_PLT_SPCD','COUNTY_PLOT', 'bio_change','SPCD','CR','CCLCD','SPGRPCD')
@@ -1303,7 +1305,7 @@ compdata<- mer0916 %>% bind_rows(mer0917, mer0918, mer1016, mer1018, mer1019, me
 ```
 
 ## Adding descriptive columns
-```{r}
+```{r adding cols from COND and PLOT}
 #COND
 compdata$FORTYPCD <- cond_tab$FORTYPCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)] 
 compdata$SITECLCD <- cond_tab$SITECLCD[match(compdata$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
@@ -1325,97 +1327,55 @@ compdata$ECOSUBCD <- plot_tab$ECOSUBCD[match(compdata$COUNTY_PLOT, plot_tab$COUN
 ```
 
 lets caluculate species richness per plot
-```{r}
+```{r species richness}
 compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 ```
 
 lets calculate shannon's index
-```{r}
-compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(H = diversity(SPCD, index = "shannon")) %>% ungroup()
+```{r shannon index}
+shdata<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,bio_change))
+    #total individuals
+    shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(totind = n()) %>% ungroup()
+    #number of each species
+    shdata<- shdata %>% group_by(COUNTY_PLOT, SPCD) %>% mutate(indsp = n()) %>% ungroup()
+    #ratio
+    shdata<- shdata %>% mutate(p = indsp/totind)
+    #pln(p)
+    shdata<- shdata %>% mutate(plnp = p*log(p))
+    #sum1
+    shdata<- shdata %>% group_by(COUNTY_PLOT,SPCD) %>% summarise(sum1 = mean(plnp))%>% ungroup()
+    #final sum
+    shdata<- shdata %>% group_by(COUNTY_PLOT) %>% mutate(summ= sum(sum1)) %>% ungroup()
+    #final step
+    shdata<- shdata %>% mutate(H= -1*summ)
+compdata$H <- shdata$H[match(compdata$COUNTY_PLOT,shdata$COUNTY_PLOT)]
 ```
 
-calculating mean biochange and 95% interval
-```{r}
-#making function to compute se for errorbars
-se <- function(x) sqrt(var(x)/length(x))
-
-smeandata<- group_by(compdata,S) %>% summarise(mean= mean(bio_change, na.rm = TRUE))
-smeandata <- smeandata %>% mutate(upper = (mean + 1.96* se(x=mean)))
-smeandata <- smeandata %>% mutate(lower = (mean - 1.96* se(x=mean)))
+functional traits
+```{r functional trait merging}
+#FROM FUNC DATA
+compdata$phenology<- FUNC_GRP$phenology[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$n_fixer<- FUNC_GRP$N_fixer[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$specific_gravity<- FUNC_GRP$specific_gravity[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$maxheight<- FUNC_GRP$max_height_m[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fruit_type<- FUNC_GRP$fruit_type[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fruit_length<- FUNC_GRP$fruit_length_cm[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$growth_rate<- FUNC_GRP$growth_rate[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$life_span<- FUNC_GRP$life_span[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$shade_tol<- FUNC_GRP$shade_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$drought_tol<- FUNC_GRP$drought_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$fire_tol<- FUNC_GRP$fire_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
+compdata$anaerobic_tol<- FUNC_GRP$anaerobic_tolerance[match(compdata$SPCD, FUNC_GRP$SPCD)]
 ```
 
+some test graphs:
+```{r init test graphs: S and H with biochange}
+#species richness
+ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()+ geom_smooth(method = )
 
-## Making diversity graphs agaist biochange!
+#shannons
+ggplot(compdata, aes(x=H, y= bio_change))+ geom_point() +geom_smooth()
 
-species richness and change in biomass
-```{r echo=FALSE}
-ggplot(compdata, aes(x=S , y=bio_change )) + geom_point()
-```
-
-shannons index and change in biomass
-```{r echo=FALSE}
-ggplot(compdata, aes(x=H, y= bio_change))+ geom_point()
-```
-
-mean change in biomass at each species richness
-```{r echo=FALSE}
-compdata$S<- as.factor(compdata$S)
-ggplot(compdata, aes(x=S, y = bio_change))+ geom_boxplot()+stat_summary(fun.y=mean, geom="point", shape=20, size=3, color= 'red')
-```
-
-#other graphs using biochange
-continuous graphs
-```{r}
-#compacted crown ration
-    ggplot(compdata, aes(x=CR, y= bio_change))+ geom_jitter()
-    #longitude
-    ggplot(compdata, aes(x=LON, y= bio_change))+ geom_point()
-    #elevation
-    ggplot(compdata, aes(x=ELEV, y= bio_change))+ geom_point()
-    #stand age
-    ggplot(compdata, aes(x=STDAGE, y= bio_change))+ geom_point()
-    #site index
-    ggplot(compdata, aes(x=SICOND, y= bio_change))+ geom_point()
-    #distance to improved road
-    ggplot(compdata, aes(x=RD, y= bio_change))+ geom_point()
-```
-
-categorical graphs
-```{r echo=FALSE}
-#physiographic class code
-    compdata$PHYSCLCD<- as.factor(compdata$PHYSCLCD)
-    ggplot(compdata, aes(x=PHYSCLCD, y= bio_change))+ geom_boxplot()
-    
-    #fire (0=no evidence of fire, 1= evidence of fire)
-    compdata$FIRE<- as.factor(compdata$FIRE)
-    compdata <- compdata[!is.na(compdata$FIRE),]
-    ggplot(compdata, aes(x=FIRE, y= bio_change))+ geom_boxplot()
-    
-    #grazing(0=no evidence of grazing, 1= evidence of grazing)
-    compdata$GRAZING<- as.factor(compdata$GRAZING)
-    compdata <- compdata[!is.na(compdata$GRAZING),]
-    ggplot(compdata, aes(x=GRAZING, y= bio_change))+ geom_boxplot()
-    
-    #ecological subsection
-    compdata$ECOSUBCD<- as.factor(compdata$ECOSUBCD)
-    ggplot(compdata, aes(x=ECOSUBCD, y= bio_change))+ geom_boxplot()
-    
-    #owner class code
-    compdata$OWNCD<- as.factor(compdata$OWNCD)
-    ggplot(compdata, aes(x=OWNCD, y= bio_change))+ geom_boxplot()
-    
-    #crown class code
-    compdata$CCLCD<- as.factor(compdata$CCLCD)
-    compdata <- compdata[!is.na(compdata$CCLCD),]
-    ggplot(compdata, aes(x=CCLCD, y= bio_change))+ geom_boxplot()
-    
-    #site productivity class code
-    compdata$SITECLCD<- as.factor(compdata$SITECLCD)
-    ggplot(compdata, aes(x=SITECLCD, y= bio_change))+ geom_boxplot()
-    
-    #stand structure
-    compdata$STAND_STRUC<- as.factor(compdata$STAND_STRUC)
-    ggplot(compdata, aes(x=STAND_STRUC, y= bio_change))+ geom_boxplot()
-
+ggplot(compdata, aes(x=S, y = H))+ geom_point()
 ```
 
