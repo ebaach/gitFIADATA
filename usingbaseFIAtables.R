@@ -5,6 +5,10 @@
 library(rFIA)
 library(dplyr)
 library(tidyverse)
+library(GGally)
+library(polycor)
+library("FactoMineR")
+library("factoextra")
 # library(vegan)
 
 #use this to load
@@ -1281,7 +1285,7 @@ compdata$CNTY_PLT_SPCD<-paste(compdata$COUNTY_PLOT,compdata$SPCD,sep="#")
 
 
 #lets compute species richness
-compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(sp_symbol)) %>% ungroup()
+compdata<- compdata %>% group_by(COUNTY_PLOT) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
 
 #lets compute shannon's index
 shdata<- compdata %>% select(c(COUNTY_PLOT,SPCD,S,bio_change))
@@ -1385,6 +1389,9 @@ checking<- checking %>% group_by(COUNTY_PLOT) %>% summarise(x = mean(bio_change)
 
 mean(checking$x, na.rm = TRUE)
 
+# extra graphs ------------------------------------------------------------
+
+
 #other graphs to look at
   #numerical (continuous)
     #compacted crown ration
@@ -1447,5 +1454,32 @@ write.csv(expnamedat, "C:\\Users\\elbaa\\OneDrive\\Desktop\\namedata.csv", row.n
 
 #99 dif species in compdata
 #138 dif species before filtering^^
+
+
+# exporting functional traits and biomass ---------------------------------
+write.csv(compdata,"C:\\Users\\elbaa\\OneDrive\\Desktop\\compdata.csv", row.names = TRUE)
+
+
+
+#LETS DO SOME STATS!!!!
+
+#first, lets make a subset table that has just functions and biomass
+func_bio_sub <- compdata %>% select(c(bio_change,phenology, n_fixer,fruit_type, fruit_length, growth_rate, life_span, drought_tol, fire_tol, anaerobic_tol, shade_tol, specific_gravity, maxheight))
+
+#ok so now we have to convert the categorical data to factors
+func_bio_sub$phenology<- as.factor(func_bio_sub$phenology)
+func_bio_sub$n_fixer<- as.factor(func_bio_sub$n_fixer)
+func_bio_sub$fruit_type<- as.factor(func_bio_sub$fruit_type)
+func_bio_sub$life_span<- as.factor(func_bio_sub$life_span)
+func_bio_sub$drought_tol<- as.factor(func_bio_sub$drought_tol)
+func_bio_sub$fire_tol<- as.factor(func_bio_sub$fire_tol)
+func_bio_sub$anaerobic_tol<- as.factor(func_bio_sub$anaerobic_tol)
+func_bio_sub$shade_tol<- as.factor(func_bio_sub$shade_tol)
+func_bio_sub$growth_rate<- as.factor(func_bio_sub$growth_rate)
+
+#ok now lets see what the correlation matrix looks like
+cortab<-hetcor(func_bio_sub)
+cormat<- as.matrix(cortab$correlations)
+cormat
 
 
