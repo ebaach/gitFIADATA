@@ -1,0 +1,218 @@
+---
+title: "SEUS_FDSEM.R"
+author: "Elizabeth Baach"
+date: "7/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### loading packages
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(rFIA)
+library(dplyr)
+library(tidyverse)
+library(FD)
+library(lavaan)
+library(piecewiseSEM)
+library(psych)
+library(MVN)
+```
+
+### loading table 
+this is combined from the 3 states and is available on github
+```{r}
+compdata_SE<-read.csv("compdata_SE.csv",header = T)
+```
+
+### making the abundance table
+```{r}
+abun<- compdata_SE %>% select(ST_COUNTY_PLOT_SUB, SPCD,prop)
+abun<- abun %>% group_by(ST_COUNTY_PLOT_SUB,SPCD) %>% filter(!duplicated(prop))
+
+abun<-pivot_wider(abun, names_from = SPCD, values_from = prop) 
+abun<-abun %>% remove_rownames %>% column_to_rownames(var="ST_COUNTY_PLOT_SUB")
+abun[is.na(abun)] <- 0
+```
+
+### converting functional traits to factors and right categories
+```{r}
+funcdat<- compdata_SE %>% select(phenology, n_fixer,fruit_type, fruit_length, growth_rate, life_span, drought_tol, fire_tol, anaerobic_tol, shade_tol, specific_gravity, maxheight,SPCD) 
+#changing traits to be in groups-- for this dataset as well
+funcdat$n_fixer <- gsub("low", "yes", funcdat$n_fixer)
+funcdat$n_fixer <- gsub("medium", "yes", funcdat$n_fixer)
+funcdat$drought_tol <- gsub("moderate", "medium", funcdat$drought_tol)
+funcdat$fire_tol <- gsub("moderate", "medium", funcdat$fire_tol)
+funcdat$anaerobic_tol <- gsub("moderate", "medium", funcdat$anaerobic_tol)
+funcdat$shade_tol<- gsub("low","intermediate",funcdat$shade_tol)
+funcdat$shade_tol<- gsub("moderate","intermediate",funcdat$shade_tol)
+funcdat$shade_tol<- gsub("interme te","intermediate",funcdat$shade_tol)
+funcdat$shade_tol<- gsub("high","tolerant", funcdat$shade_tol)
+
+#converting to factors
+funcdat$phenology<- as.factor(funcdat$phenology)
+funcdat$n_fixer<- as.factor(funcdat$n_fixer)
+funcdat$fruit_type<- as.factor(funcdat$fruit_type)
+funcdat$life_span<- as.factor(funcdat$life_span)
+funcdat$drought_tol<- as.factor(funcdat$drought_tol)
+funcdat$fire_tol<- as.factor(funcdat$fire_tol)
+funcdat$anaerobic_tol<- as.factor(funcdat$anaerobic_tol)
+funcdat$shade_tol<- as.factor(funcdat$shade_tol)
+funcdat$growth_rate<- as.factor(funcdat$growth_rate)
+```
+
+#### making table correct and removing duplicate rows
+```{r}
+funcdat<-funcdat %>% filter(!duplicated(SPCD))
+funcdat<- funcdat %>% remove_rownames %>% column_to_rownames(var="SPCD")
+```
+
+## functional diversity calculation
+this shows the function used as well as the responses used for the prompts (acutal code was acting strange in the Rmd format)
+```{r}
+#testfd<- dbFD(funcdat, abun, corr = "lingoes",calc.FGR = T)
+#g--> stands for groups, the other option (h) is for height of dendrogram
+#12--> using visual inspection of the dendrogram we cut it into 12 groups
+```
+this is the code we used to extract functional richness and add it to our main dataframe. the compdata_SE file is already updated to show functional richness (labeled count) thus further updating is no longer required--- this just shows the extraction method
+```{r}
+# grabun<- as.data.frame(testfd$gr.abun)
+# head(rowSums(grabun))
+# grabun$count<- rowSums(grabun!=0)
+# grabun$ST_COUNTY_PLOT_SUB<- rownames(grabun)
+# compdata_SE$count<- grabun$count[match(compdata_SE$ST_COUNTY_PLOT_SUB,grabun$ST_COUNTY_PLOT_SUB)]
+```
+
+#Structural Equation Modeling
+## loading in table 
+```{r}
+semdata_SE<- read.csv("compdata_SE.csv",header = T)
+
+#removing unnecessary columns
+semdata_SE<- semdata_SE %>% select(-c("X","phenology","n_fixer","specific_gravity","maxheight","fruit_type","fruit_length","growth_rate","life_span","shade_tol","drought_tol","fire_tol","anaerobic_tol","prop"))
+
+#removing duplicated rows
+semdata_SE<-semdata_SE %>% filter(!duplicated(ST_COUNTY_PLOT_SUB))
+```
+
+checking for normality
+```{r}
+mvn(semdata_SE %>% select(-c(ST_COUNTY_PLOT, ST_COUNTY_PLOT_SUB)))
+```
+
+### linear models
+```{r}
+div_model<- lm(bio_change~ S* H*count-1, semdata_SE)
+summary(div_model)
+
+env_model<- lm(bio_change~ ELEV +slope+LAT+STDAGE+tpha-1, semdata_SE)
+summary(env_model)
+```
+
+factor scores
+```{r}
+beta_S <- summary(div_model)$coefficients[1, 1]
+beta_H <- summary(div_model)$coefficients[2, 1]
+beta_count <- summary(div_model)$coefficients[3, 1]
+
+beta_ELEV<- summary(env_model)$coefficients[1, 1]
+beta_slope<- summary(env_model)$coefficients[2, 1]
+beta_LAT<- summary(env_model)$coefficients[3, 1]
+beta_STDAGE<- summary(env_model)$coefficients[4, 1]
+beta_tpha<- summary(env_model)$coefficients[5, 1]
+```
+
+## models
+with biodiversity composite variable
+```{r message=FALSE, warning=FALSE}
+biodiv_comp<- '
+biodiv_effect<~ 5066.154*S + (-2956.485)*H + (-1042.251)*count
+
+env_effect<~(-1.588)*ELEV + 95.58*LAT +(-1978.54)*slope
+
+bio_change~biodiv_effect+ STDAGE +tpha+ env_effect
+S~~H
+S~~count
+H~~count
+tpha~STDAGE
+
+'
+bdcomp<- sem(biodiv_comp, semdata_SE, fixed.x=F)
+summary(bdcomp, standardize=T,rsq=T,fit.measures=T)
+```
+
+main model used in manuscript
+```{r message=FALSE, warning=FALSE}
+sem_reg<- '
+
+env_effect<~(-1.588)*ELEV + 95.58*LAT +(-1978.54)*slope
+
+bio_change~S+H+count+STDAGE +tpha+ env_effect
+H~S
+count~S
+tpha~S
+tpha~H
+tpha~count
+tpha~STDAGE
+
+'
+semreg<- sem(sem_reg, semdata_SE, fixed.x=F)
+summary(semreg, standardize=T,rsq=T,fit.measures=T)
+
+```
+
+no environmental composite variable
+```{r message=FALSE, warning=FALSE}
+no_env<- '
+bio_change~S+H+count+STDAGE +tpha+ELEV+slope+LAT
+H~S
+count~S
+tpha~S
+tpha~H
+tpha~count
+tpha~STDAGE
+
+
+'
+no_env_mod<- sem(no_env, semdata_SE, fixed.x=F)
+summary(no_env_mod, standardize=T,rsq=T,fit.measures=T)
+```
+
+individual diversity indicator models
+```{r message=FALSE, warning=FALSE}
+S_mod<-'
+env_effect<~(-1.588)*ELEV + 95.58*LAT +(-1978.54)*slope
+
+bio_change~S+STDAGE +tpha+ env_effect
+
+tpha~S
+tpha~STDAGE
+'
+s_model<- sem(S_mod, semdata_SE, fixed.x=F)
+summary(s_model, standardize=T,rsq=T,fit.measures=T)
+
+H_mod<-'
+env_effect<~(-1.588)*ELEV + 95.58*LAT +(-1978.54)*slope
+
+bio_change~H+STDAGE +tpha+ env_effect
+
+tpha~H
+tpha~STDAGE
+'
+h_model<- sem(H_mod, semdata_SE, fixed.x=F)
+summary(h_model, standardize=T,rsq=T,fit.measures=T)
+
+F_mod<-'
+env_effect<~(-1.588)*ELEV + 95.58*LAT +(-1978.54)*slope
+
+bio_change~count+STDAGE +tpha+ env_effect
+
+tpha~count
+tpha~STDAGE
+'
+f_model<- sem(F_mod, semdata_SE, fixed.x=F)
+summary(f_model, standardize=T,rsq=T,fit.measures=T)
+```
+
