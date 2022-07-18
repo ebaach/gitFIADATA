@@ -1,0 +1,668 @@
+---
+title: "LA_vars"
+author: "Elizabeth Baach"
+date: "7/18/2022"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### Loading packages
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+
+library(dplyr)
+library(tidyverse)
+library(rFIA)
+```
+### Loading in FIA tables
+(these are available online at the FIA datamart)
+```{r}
+LA <- readFIA('C:/Users/elbaa/OneDrive/Desktop/gitMSDATA/LA_data', inMemory = FALSE)
+
+LA_TREE <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA/LA_data', tables = 'TREE', inMemory = TRUE)
+LA_COND <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA/LA_data', tables = 'COND', inMemory = TRUE)
+LA_PLOT <- readFIA(dir = 'C:/Users/elbaa/OneDrive/Desktop/gitMSDATA/LA_data', tables = 'PLOT', inMemory = TRUE)
+```
+
+### Filtering the tables
+```{r}
+
+#filtering TREE table
+tree_tab <- LA_TREE$TREE
+tree_tab <- select(tree_tab,c(CN, PLT_CN, PREV_TRE_CN, INVYR, COUNTYCD, PLOT, SUBP, CONDID, STATUSCD, SPCD, DIA, HT, SPGRPCD,CR, CCLCD,SPGRPCD,UNITCD))
+tree_tab <- tree_tab %>% mutate(diam = (2.54 * tree_tab$DIA ))
+tree_tab<- tree_tab %>% select(-c(DIA))
+tree_tab$DIA<- tree_tab$diam
+tree_tab<- tree_tab %>% select(-c(diam))
+
+#filtering PLOT table
+plot_tab <- LA_PLOT$PLOT
+plot_tab<- select(plot_tab, c(PLOT, INVYR, COUNTYCD, LAT, LON, ELEV, RDDISTCD, ECOSUBCD))
+plot_tab$COUNTY_PLOT <- paste(plot_tab$COUNTYCD,plot_tab$PLOT, sep="_")
+plot_tab<- plot_tab %>% filter(INVYR>=2009)
+
+#filtering COND table
+cond_tab <- LA_COND$COND
+cond_tab<- select(cond_tab, c(CN, PLT_CN, INVYR, COUNTYCD, PLOT, FORTYPCD, STDAGE, STDORGCD, DSTRBCD1,TRTCD1, SITECLCD, SICOND,PHYSCLCD, FIRE_SRS, GRAZING_SRS, OWNCD, STAND_STRUCTURE_SRS, BALIVE,SISP,SLOPE,ASPECT))
+cond_tab<- cond_tab %>% filter(INVYR>=2009)
+cond_tab<- cond_tab %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+cond_tab$COUNTY_PLOT <- paste(cond_tab$COUNTYCD,cond_tab$PLOT, sep="_")
+
+```
+
+### Subsetting by the year
+For this study we used data from 2009 to 2019 only
+```{r}
+#tree
+tree09 <- tree_tab %>% subset(INVYR==2009)
+tree10 <- tree_tab %>% subset(INVYR==2010)
+tree11 <- tree_tab %>% subset(INVYR==2011)
+tree12 <- tree_tab %>% subset(INVYR==2012)
+tree13 <- tree_tab %>% subset(INVYR==2013)
+tree14 <- tree_tab %>% subset(INVYR==2014)
+tree15 <- tree_tab %>% subset(INVYR==2015)
+tree16 <- tree_tab %>% subset(INVYR==2016)
+tree17 <- tree_tab %>% subset(INVYR==2017)
+tree18 <- tree_tab %>% subset(INVYR==2018)
+tree19 <- tree_tab %>% subset(INVYR==2019)
+#plot
+plot09<- plot_tab %>% subset(INVYR==2009)
+plot10<- plot_tab %>% subset(INVYR==2010)
+plot11<- plot_tab %>% subset(INVYR==2011)
+plot12<- plot_tab %>% subset(INVYR==2012)
+plot13<- plot_tab %>% subset(INVYR==2013)
+plot14<- plot_tab %>% subset(INVYR==2014)
+plot15<- plot_tab %>% subset(INVYR==2015)
+plot16<- plot_tab %>% subset(INVYR==2016)
+plot17<- plot_tab %>% subset(INVYR==2017)
+plot18<- plot_tab %>% subset(INVYR==2018)
+plot19<- plot_tab %>% subset(INVYR==2019)
+#cond
+cond09<- cond_tab %>% subset(INVYR==2009)
+cond10<- cond_tab %>% subset(INVYR==2010)
+cond11<- cond_tab %>% subset(INVYR==2011)
+cond12<- cond_tab %>% subset(INVYR==2012)
+cond13<- cond_tab %>% subset(INVYR==2013)
+cond14<- cond_tab %>% subset(INVYR==2014)
+cond15<- cond_tab %>% subset(INVYR==2015)
+cond16<- cond_tab %>% subset(INVYR==2016)
+cond17<- cond_tab %>% subset(INVYR==2017)
+cond18<- cond_tab %>% subset(INVYR==2018)
+cond19<- cond_tab %>% subset(INVYR==2019)
+```
+
+### finding remearsured plots
+this was orginally done for all year combinations-- remaining code show those with remeasurement data availablie
+```{r}
+checkdat1609 <- subset(tree16, tree16$PREV_TRE_CN %in% tree09$CN)
+checkdat1609 <- subset(checkdat1609, select = -c(CN))
+checkdat1609$CN <- checkdat1609$PREV_TRE_CN
+checkdat1609 <- subset(checkdat1609, select = -c(PREV_TRE_CN, PLT_CN))
+
+checkdat1809 <- subset(tree18, tree18$PREV_TRE_CN %in% tree09$CN)
+checkdat1809 <- subset(checkdat1809, select = -c(CN))
+checkdat1809$CN <-     checkdat1809$PREV_TRE_CN
+checkdat1809 <- subset(checkdat1809, select = -c(PREV_TRE_CN, PLT_CN))
+
+checkdat1610 <- subset(tree16, tree16$PREV_TRE_CN %in% tree10$CN)
+checkdat1610 <- subset(checkdat1610, select = -c(CN))
+checkdat1610$CN <-     checkdat1610$PREV_TRE_CN
+checkdat1610 <- subset(checkdat1610, select = -c(PREV_TRE_CN, PLT_CN))
+
+checkdat1710 <- subset(tree17, tree17$PREV_TRE_CN %in% tree10$CN)
+checkdat1710 <- subset(checkdat1710, select = -c(CN))
+checkdat1710$CN <-     checkdat1710$PREV_TRE_CN
+checkdat1710 <- subset(checkdat1710, select = -c(PREV_TRE_CN, PLT_CN))
+
+checkdat1711 <- subset(tree17, tree17$PREV_TRE_CN %in% tree11$CN)
+checkdat1711 <- subset(checkdat1711, select = -c(CN))
+checkdat1711$CN <-     checkdat1711$PREV_TRE_CN
+checkdat1711 <- subset(checkdat1711, select = -c(PREV_TRE_CN, PLT_CN))
+
+checkdat1811 <- subset(tree18, tree18$PREV_TRE_CN %in% tree11$CN)
+checkdat1811 <- subset(checkdat1811, select = -c(CN))
+checkdat1811$CN <-     checkdat1811$PREV_TRE_CN
+checkdat1811 <- subset(checkdat1811, select = -c(PREV_TRE_CN, PLT_CN))
+
+checkdat1812 <- subset(tree18, tree18$PREV_TRE_CN %in% tree12$CN)
+checkdat1812 <- subset(checkdat1812, select = -c(CN))
+checkdat1812$CN <-     checkdat1812$PREV_TRE_CN
+checkdat1812 <- subset(checkdat1812, select = -c(PREV_TRE_CN, PLT_CN))
+
+#and the reverse for remeasured plots
+checkdat0916 <- subset(tree09, tree09$CN %in%  tree16$PREV_TRE_CN)
+checkdat0916 <- subset(checkdat0916, select = -c(PREV_TRE_CN))
+
+checkdat0918 <- subset(tree09, tree09$CN %in%  tree18$PREV_TRE_CN)
+checkdat0918 <- subset(checkdat0918, select = -c(PREV_TRE_CN))
+
+checkdat1016 <- subset(tree10, tree10$CN %in%  tree16$PREV_TRE_CN)
+checkdat1016 <- subset(checkdat1016, select = -c(PREV_TRE_CN))
+
+checkdat1017 <- subset(tree10, tree10$CN %in%  tree17$PREV_TRE_CN)
+checkdat1017 <- subset(checkdat1017, select = -c(PREV_TRE_CN))
+
+checkdat1117 <- subset(tree11, tree11$CN %in%  tree17$PREV_TRE_CN)
+checkdat1117 <- subset(checkdat1117, select = -c(PREV_TRE_CN))
+
+checkdat1118 <- subset(tree11, tree11$CN %in%  tree18$PREV_TRE_CN)
+checkdat1118 <- subset(checkdat1118, select = -c(PREV_TRE_CN))
+
+checkdat1218 <- subset(tree12, tree12$CN %in%  tree18$PREV_TRE_CN)
+checkdat1218 <- subset(checkdat1218, select = -c(PREV_TRE_CN))
+```
+
+### Merging remeasured plot data
+```{r}
+#2009 to 2016
+data0916<- checkdat1609
+data0916$DIA09 <- checkdat0916$DIA[match(checkdat1609$CN,checkdat0916$CN)]
+data0916$DIA16<- data0916$DIA
+data0916<- data0916 %>% select(-c(DIA))
+data0916$HT09<- checkdat0916$HT[match(checkdat1609$CN, checkdat0916$CN)]
+data0916$HT16<- data0916$HT
+data0916<- data0916 %>% select(-c(HT, INVYR))
+data0916<- data0916 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+#now i will make a new col that has county and plot
+data0916$COUNTY_PLOT <- paste(data0916$COUNTYCD,data0916$PLOT, sep="_")
+#adding BA and stand age using the first of the years
+data0916$BA<- pi*(.5*data0916$DIA09)^2
+data0916$STDAGE <- cond09$STDAGE[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+
+#2009 to 2018
+data0918<- checkdat1809
+data0918$DIA09 <- checkdat0918$DIA[match(checkdat1809$CN,checkdat0918$CN)]
+data0918$DIA18<- data0918$DIA
+data0918<- data0918 %>% select(-c(DIA ))
+data0918$HT09<- checkdat0918$HT[match(checkdat1809$CN, checkdat0918$CN)]
+data0918$HT18<- data0918$HT
+data0918<- data0918 %>% select(-c(HT, INVYR))
+data0918<- data0918 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+data0918$COUNTY_PLOT <- paste(data0918$COUNTYCD,data0918$PLOT, sep="_")
+data0918$BA<- pi*(.5*data0918$DIA09)^2
+data0918$STDAGE <- cond09$STDAGE[match(data0918$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+
+#2010 to 2016
+data1016<-checkdat1610
+data1016$DIA10 <- checkdat1016$DIA[match(checkdat1610$CN,checkdat1016$CN)]
+data1016$DIA16<- data1016$DIA
+data1016<- data1016 %>% select(-c(DIA ))
+data1016$HT10<- checkdat1016$HT[match(checkdat1610$CN, checkdat1016$CN)]
+data1016$HT16<- data1016$HT
+data1016<- data1016 %>% select(-c(HT, INVYR))
+data1016<- data1016 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+data1016$COUNTY_PLOT <- paste(data1016$COUNTYCD,data1016$PLOT, sep="_")
+data1016$BA<- pi*(.5*data1016$DIA10)^2
+data1016$STDAGE <- cond10$STDAGE[match(data1016$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+
+#2010 to 2017
+data1017<-checkdat1710
+data1017$DIA10 <- checkdat1017$DIA[match(checkdat1710$CN,checkdat1017$CN)]
+data1017$DIA17<- data1017$DIA
+data1017<- data1017 %>% select(-c(DIA ))
+data1017$HT10<- checkdat1017$HT[match(checkdat1710$CN, checkdat1017$CN)]
+data1017$HT17<- data1017$HT
+data1017<- data1017 %>% select(-c(HT, INVYR))
+data1017<- data1017 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+data1017$COUNTY_PLOT <- paste(data1017$COUNTYCD,data1017$PLOT, sep="_")
+data1017$BA<- pi*(.5*data1017$DIA10)^2
+data1017$STDAGE <- cond10$STDAGE[match(data1017$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+
+#2011 to 2017
+data1117<-checkdat1711
+data1117$DIA11 <- checkdat1117$DIA[match(checkdat1711$CN,checkdat1117$CN)]
+data1117$DIA17<- data1117$DIA
+data1117<- data1117 %>% select(-c(DIA ))
+data1117$HT11<- checkdat1117$HT[match(checkdat1711$CN, checkdat1117$CN)]
+data1117$HT17<- data1117$HT
+data1117<- data1117 %>% select(-c(HT, INVYR))
+data1117<- data1117 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+data1117$COUNTY_PLOT <- paste(data1117$COUNTYCD,data1117$PLOT, sep="_")
+data1117$BA<- pi*(.5*data1117$DIA11)^2
+data1117$STDAGE <- cond11$STDAGE[match(data1117$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+
+#2011 to 2018
+data1118<-checkdat1811
+data1118$DIA11 <- checkdat1118$DIA[match(checkdat1811$CN,checkdat1118$CN)]
+data1118$DIA18<- data1118$DIA
+data1118<- data1118 %>% select(-c(DIA ))
+data1118$HT11<- checkdat1118$HT[match(checkdat1811$CN, checkdat1118$CN)]
+data1118$HT18<- data1118$HT
+data1118<- data1118 %>% select(-c(HT, INVYR))
+data1118<- data1118 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+data1118$COUNTY_PLOT <- paste(data1118$COUNTYCD,data1118$PLOT, sep="_")
+data1118$BA<- pi*(.5*data1118$DIA11)^2
+data1118$STDAGE <- cond11$STDAGE[match(data1118$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+
+#2012 to 2018
+data1218<-checkdat1812
+data1218$DIA12 <- checkdat1218$DIA[match(checkdat1812$CN,checkdat1218$CN)]
+data1218$DIA18<- data1218$DIA
+data1218<- data1218 %>% select(-c(DIA ))
+data1218$HT12<- checkdat1218$HT[match(checkdat1812$CN, checkdat1218$CN)]
+data1218$HT18<- data1218$HT
+data1218<- data1218 %>% select(-c(HT, INVYR))
+data1218<- data1218 %>% group_by(COUNTYCD) %>% arrange(PLOT, .by_group=TRUE)
+data1218$COUNTY_PLOT <- paste(data1218$COUNTYCD,data1218$PLOT, sep="_")
+data1218$BA<- pi*(.5*data1218$DIA12)^2
+data1218$STDAGE <- cond12$STDAGE[match(data1218$COUNTY_PLOT, cond12$COUNTY_PLOT)]
+```
+
+### Filtering for treatment and disturbance and natrual regen
+```{r}
+#2009-16
+data0916$STDORGCD09 <- cond09$STDORGCD[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+data0916$STDORGCD16 <- cond16$STDORGCD[match(data0916$COUNTY_PLOT, cond16$COUNTY_PLOT)]
+data0916<- data0916 %>% filter(STDORGCD09==0)
+data0916<- data0916 %>% filter(STDORGCD16==0)
+data0916<- data0916 %>% select(-c(STDORGCD09,STDORGCD16))
+
+data0916$DSTRB09 <- cond09$DSTRBCD1[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+data0916$DSTRB16 <- cond16$DSTRBCD1[match(data0916$COUNTY_PLOT, cond16$COUNTY_PLOT)]
+data0916<- data0916 %>% filter(DSTRB09==0)
+data0916<- data0916 %>% filter(DSTRB16==0)
+data0916<- data0916 %>% select(-c(DSTRB09, DSTRB16))
+
+data0916$TRT09 <- cond09$TRTCD1[match(data0916$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+data0916$TRT16 <- cond16$TRTCD1[match(data0916$COUNTY_PLOT, cond16$COUNTY_PLOT)]
+data0916<- data0916 %>% filter(TRT09==0)
+data0916<- data0916 %>% filter(TRT16==0)
+data0916<- data0916 %>% select(-c(TRT09, TRT16))
+
+#2009-18
+data0918$STDORGCD09 <- cond09$STDORGCD[match(data0918$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+data0918$STDORGCD18 <- cond18$STDORGCD[match(data0918$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data0918<- data0918 %>% filter(STDORGCD09==0)
+data0918<- data0918 %>% filter(STDORGCD18==0)
+data0918<- data0918 %>% select(-c(STDORGCD09,STDORGCD18))
+
+data0918$DSTRB09 <- cond09$DSTRBCD1[match(data0918$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+data0918$DSTRB18 <- cond18$DSTRBCD1[match(data0918$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data0918<- data0918 %>% filter(DSTRB09==0)
+data0918<- data0918 %>% filter(DSTRB18==0)
+data0918<- data0918 %>% select(-c(DSTRB09, DSTRB18))
+
+data0918$TRT09 <- cond09$TRTCD1[match(data0918$COUNTY_PLOT, cond09$COUNTY_PLOT)]
+data0918$TRT18 <- cond18$TRTCD1[match(data0918$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data0918<- data0918 %>% filter(TRT09==0)
+data0918<- data0918 %>% filter(TRT18==0)
+data0918<- data0918 %>% select(-c(TRT09, TRT18))
+
+#2010-16
+data1016$STDORGCD10 <- cond10$STDORGCD[match(data1016$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+data1016$STDORGCD16 <- cond16$STDORGCD[match(data1016$COUNTY_PLOT, cond16$COUNTY_PLOT)]
+data1016<- data1016 %>% filter(STDORGCD10==0)
+data1016<- data1016 %>% filter(STDORGCD16==0)
+data1016<- data1016 %>% select(-c(STDORGCD10,STDORGCD16))
+
+data1016$DSTRB10 <- cond10$DSTRBCD1[match(data1016$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+data1016$DSTRB16 <- cond16$DSTRBCD1[match(data1016$COUNTY_PLOT, cond16$COUNTY_PLOT)]
+data1016<- data1016 %>% filter(DSTRB10==0)
+data1016<- data1016 %>% filter(DSTRB16==0)
+data1016<- data1016 %>% select(-c(DSTRB10, DSTRB16))
+
+data1016$TRT10 <- cond10$TRTCD1[match(data1016$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+data1016$TRT16 <- cond16$TRTCD1[match(data1016$COUNTY_PLOT, cond16$COUNTY_PLOT)]
+data1016<- data1016 %>% filter(TRT10==0)
+data1016<- data1016 %>% filter(TRT16==0)
+data1016<- data1016 %>% select(-c(TRT10, TRT16))
+
+#2010-17
+data1017$STDORGCD10 <- cond10$STDORGCD[match(data1017$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+data1017$STDORGCD17 <- cond17$STDORGCD[match(data1017$COUNTY_PLOT, cond17$COUNTY_PLOT)]
+data1017<- data1017 %>% filter(STDORGCD10==0)
+data1017<- data1017 %>% filter(STDORGCD17==0)
+data1017<- data1017 %>% select(-c(STDORGCD10,STDORGCD17))
+
+data1017$DSTRB10 <- cond10$DSTRBCD1[match(data1017$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+data1017$DSTRB17 <- cond17$DSTRBCD1[match(data1017$COUNTY_PLOT, cond17$COUNTY_PLOT)]
+data1017<- data1017 %>% filter(DSTRB10==0)
+data1017<- data1017 %>% filter(DSTRB17==0)
+data1017<- data1017 %>% select(-c(DSTRB10, DSTRB17))
+
+data1017$TRT10 <- cond10$TRTCD1[match(data1017$COUNTY_PLOT, cond10$COUNTY_PLOT)]
+data1017$TRT17 <- cond17$TRTCD1[match(data1017$COUNTY_PLOT, cond17$COUNTY_PLOT)]
+data1017<- data1017 %>% filter(TRT10==0)
+data1017<- data1017 %>% filter(TRT17==0)
+data1017<- data1017 %>% select(-c(TRT10, TRT17))
+
+#2011-17
+data1117$STDORGCD11 <- cond11$STDORGCD[match(data1117$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+data1117$STDORGCD17 <- cond17$STDORGCD[match(data1117$COUNTY_PLOT, cond17$COUNTY_PLOT)]
+data1117<- data1117 %>% filter(STDORGCD11==0)
+data1117<- data1117 %>% filter(STDORGCD17==0)
+data1117<- data1117 %>% select(-c(STDORGCD11,STDORGCD17))
+
+data1117$DSTRB11 <- cond11$DSTRBCD1[match(data1117$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+data1117$DSTRB17 <- cond17$DSTRBCD1[match(data1117$COUNTY_PLOT, cond17$COUNTY_PLOT)]
+data1117<- data1117 %>% filter(DSTRB11==0)
+data1117<- data1117 %>% filter(DSTRB17==0)
+data1117<- data1117 %>% select(-c(DSTRB11, DSTRB17))
+
+data1117$TRT11 <- cond11$TRTCD1[match(data1117$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+data1117$TRT17 <- cond17$TRTCD1[match(data1117$COUNTY_PLOT, cond17$COUNTY_PLOT)]
+data1117<- data1117 %>% filter(TRT11==0)
+data1117<- data1117 %>% filter(TRT17==0)
+data1117<- data1117 %>% select(-c(TRT11, TRT17))
+
+#2011-18
+data1118$STDORGCD11 <- cond11$STDORGCD[match(data1118$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+data1118$STDORGCD18 <- cond18$STDORGCD[match(data1118$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data1118<- data1118 %>% filter(STDORGCD11==0)
+data1118<- data1118 %>% filter(STDORGCD18==0)
+data1118<- data1118 %>% select(-c(STDORGCD11,STDORGCD18))
+
+data1118$DSTRB11 <- cond11$DSTRBCD1[match(data1118$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+data1118$DSTRB18 <- cond18$DSTRBCD1[match(data1118$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data1118<- data1118 %>% filter(DSTRB11==0)
+data1118<- data1118 %>% filter(DSTRB18==0)
+data1118<- data1118 %>% select(-c(DSTRB11, DSTRB18))
+
+data1118$TRT11 <- cond11$TRTCD1[match(data1118$COUNTY_PLOT, cond11$COUNTY_PLOT)]
+data1118$TRT18 <- cond18$TRTCD1[match(data1118$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data1118<- data1118 %>% filter(TRT11==0)
+data1118<- data1118 %>% filter(TRT18==0)
+data1118<- data1118 %>% select(-c(TRT11, TRT18))
+
+#2012-18
+data1218$STDORGCD12 <- cond12$STDORGCD[match(data1218$COUNTY_PLOT, cond12$COUNTY_PLOT)]
+data1218$STDORGCD18 <- cond18$STDORGCD[match(data1218$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data1218<- data1218 %>% filter(STDORGCD12==0)
+data1218<- data1218 %>% filter(STDORGCD18==0)
+data1218<- data1218 %>% select(-c(STDORGCD12,STDORGCD18))
+
+data1218$DSTRB12 <- cond12$DSTRBCD1[match(data1218$COUNTY_PLOT, cond12$COUNTY_PLOT)]
+data1218$DSTRB18 <- cond18$DSTRBCD1[match(data1218$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data1218<- data1218 %>% filter(DSTRB12==0)
+data1218<- data1218 %>% filter(DSTRB18==0)
+data1218<- data1218 %>% select(-c(DSTRB12, DSTRB18))
+
+data1218$TRT12 <- cond12$TRTCD1[match(data1218$COUNTY_PLOT, cond12$COUNTY_PLOT)]
+data1218$TRT18 <- cond18$TRTCD1[match(data1218$COUNTY_PLOT, cond18$COUNTY_PLOT)]
+data1218<- data1218 %>% filter(TRT12==0)
+data1218<- data1218 %>% filter(TRT18==0)
+data1218<- data1218 %>% select(-c(TRT12, TRT18))
+```
+
+## Biomass equation
+#### log(biomass)=B0+B1*log(DIA)----> biomass= exp(BO+ B1*log(DIA))
+β_0 and β_1 are determined using species’ taxonomic identity and wood specific gravity (green volume to dry-weight basis) (Chojnacky, Heath, and Jenkins 2014; Miles and Smith 2009). 
+```{r}
+biomass_function <- function(spp, dbh) { 
+  case_when(
+    spp== 68  ~ exp( -2.6327   +    2.4757 *log(dbh)),
+    spp== 110 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 111 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 115 ~ exp( -2.6177   +    2.4638 *log(dbh)),
+    spp== 121 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 131 ~ exp( -3.0506   +    2.6465 *log(dbh)),
+    spp== 221 ~ exp( -2.6327   +    2.4757 *log(dbh)),
+    spp== 222 ~ exp( -2.6327   +    2.4757 *log(dbh)),
+    spp== 311 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 313 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 316 ~ exp( -2.0470   +    2.3852 *log(dbh)),
+    spp== 345 ~ exp( -2.5095   +    2.5437 *log(dbh)), 
+    spp== 367 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 391 ~ exp( -2.2652   +    2.5349 *log(dbh)),
+    spp== 400 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 401 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 402 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 403 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 404 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 407 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 408 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 409 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 413 ~ exp( -2.5095   +    2.6175 *log(dbh)),
+    spp== 461 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 471 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 491 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 500 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 521 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 531 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 541 ~ exp( -1.8384   +    2.3524 *log(dbh)),
+    spp== 544 ~ exp( -2.0314   +    2.3524 *log(dbh)),
+    spp== 551 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 552 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 582 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 591 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 602 ~ exp( -2.5095   +    2.5437 *log(dbh)),
+    spp== 611 ~ exp( -2.6390   +    2.5466 *log(dbh)),
+    spp== 621 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 641 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 651 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 652 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 653 ~ exp( -2.5497   +    2.5011 *log(dbh)),
+    spp== 682 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 691 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 693 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 694 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 701 ~ exp( -2.2652   +    2.5349 *log(dbh)),
+    spp== 711 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 721 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 722 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 731 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 740 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 742 ~ exp( -2.4441   +    2.4561 *log(dbh)),
+    spp== 762 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 766 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 802 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 812 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 813 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 820 ~ exp( -2.2198   +    2.4410 *log(dbh)),
+    spp== 822 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 824 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 825 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 827 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 828 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 831 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 834 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 835 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 836 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 837 ~ exp( -2.0705   +    2.4410 *log(dbh)),
+    spp== 838 ~ exp( -2.2198   +    2.4410 *log(dbh)),
+    spp== 858 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 922 ~ exp( -2.4441   +    2.4561 *log(dbh)),
+    spp== 931 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 953 ~ exp( -2.4108   +    2.4177 *log(dbh)),
+    spp== 971 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 972 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 973 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 975 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 993 ~ exp( -1.8011   +    2.3852 *log(dbh)),
+    spp== 994 ~ exp( -2.2118   +    2.4133 *log(dbh)),
+    spp== 995 ~ exp( -2.2118   +    2.4133 *log(dbh)),)
+}
+```
+
+### now applying that equation
+```{r}
+#2009-16
+bio0916<- data0916 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = DIA09))
+bio0916<- bio0916 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
+
+#2009-18
+bio0918<- data0918 %>% mutate(bio09 = biomass_function(spp = SPCD, dbh = DIA09))
+bio0918<- bio0918 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
+#2010-16
+bio1016<- data1016 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = DIA10))
+bio1016<- bio1016 %>% mutate(bio16 = biomass_function(spp = SPCD, dbh = DIA16))
+
+#2010-17
+bio1017<- data1017 %>% mutate(bio10 = biomass_function(spp = SPCD, dbh = DIA10))
+bio1017<- bio1017 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = DIA17))
+
+#2011-17
+bio1117<- data1117 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = DIA11))
+bio1117<- bio1117 %>% mutate(bio17 = biomass_function(spp = SPCD, dbh = DIA17))
+
+#2011-18
+bio1118<- data1118 %>% mutate(bio11 = biomass_function(spp = SPCD, dbh = DIA11))
+bio1118<- bio1118 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+
+#2012-18
+bio1218<- data1218 %>% mutate(bio12 = biomass_function(spp = SPCD, dbh = DIA12))
+bio1218<- bio1218 %>% mutate(bio18 = biomass_function(spp = SPCD, dbh = DIA18))
+```
+
+### adding some necessary vars (subplot label and tpha)
+```{r}
+#subplots
+bio0916$COUNTY_PLOT_SUB <- paste(bio0916$COUNTY_PLOT,bio0916$SUBP, sep="_")
+bio0918$COUNTY_PLOT_SUB <- paste(bio0918$COUNTY_PLOT,bio0918$SUBP, sep="_")
+bio1016$COUNTY_PLOT_SUB <- paste(bio1016$COUNTY_PLOT,bio1016$SUBP, sep="_")
+bio1017$COUNTY_PLOT_SUB <- paste(bio1017$COUNTY_PLOT,bio1017$SUBP, sep="_")
+bio1117$COUNTY_PLOT_SUB <- paste(bio1117$COUNTY_PLOT,bio1117$SUBP, sep="_")
+bio1118$COUNTY_PLOT_SUB <- paste(bio1118$COUNTY_PLOT,bio1118$SUBP, sep="_")
+bio1218$COUNTY_PLOT_SUB <- paste(bio1218$COUNTY_PLOT,bio1218$SUBP, sep="_")
+
+#trees per hectare
+bio0916 <- bio0916 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+bio0918 <- bio0918 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+bio1016 <- bio1016 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+bio1017 <- bio1017 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+bio1117 <- bio1117 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+bio1118 <- bio1118 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+bio1218 <- bio1218 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(tpha=n()/0.0168)
+```
+
+### now getting FIA subplot (called plot in the manuscript) sums of biomass
+```{r}
+#2009-16
+bio0916<- bio0916 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio09=sum(bio09,na.rm = T),sumbio16=sum(bio16,na.rm = T))
+bio0916$bio_change <- ((bio0916$sumbio16- bio0916$sumbio09)/7)
+#2009-18
+bio0918<- bio0918 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio09=sum(bio09,na.rm = T),sumbio18=sum(bio18,na.rm = T))
+bio0918$bio_change <- ((bio0918$sumbio18- bio0918$sumbio09)/9)
+#2010-16
+bio1016<- bio1016 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio10=sum(bio10,na.rm = T),sumbio16=sum(bio16,na.rm = T))
+bio1016$bio_change <- ((bio1016$sumbio16- bio1016$sumbio10)/6)
+#2010-17
+bio1017<- bio1017 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio10=sum(bio10,na.rm = T),sumbio17=sum(bio17,na.rm = T))
+bio1017$bio_change <- ((bio1017$sumbio17- bio1017$sumbio10)/7)
+#2011-17
+bio1117<- bio1117 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio11=sum(bio11,na.rm = T),sumbio17=sum(bio17,na.rm = T))
+bio1117$bio_change <- ((bio1117$sumbio17- bio1117$sumbio11)/6)
+#2011-18
+bio1118<- bio1118 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio11=sum(bio11,na.rm = T),sumbio18=sum(bio18,na.rm = T))
+bio1118$bio_change <- ((bio1118$sumbio18- bio1118$sumbio11)/7)
+#2012-18
+bio1218<- bio1218 %>% group_by(COUNTY_PLOT_SUB) %>% mutate(sumbio12=sum(bio12,na.rm = T),sumbio18=sum(bio18,na.rm = T))
+bio1218$bio_change <- ((bio1218$sumbio18- bio1218$sumbio12)/6)
+```
+
+### now to merge all years and plots
+```{r}
+mer0916 <- bio0916 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+mer0918 <- bio0918 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+mer1016 <- bio1016 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+mer1017 <- bio1017 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+mer1117 <- bio1117 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+mer1118 <- bio1118 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+mer1218 <- bio1218 %>% select('COUNTY_PLOT', 'bio_change','SPCD','STDAGE','BA', "COUNTY_PLOT","tpha")
+
+
+#now for the complete merge
+compdata_LA<- mer0916 %>% bind_rows( mer0918, mer1016, mer1017,  mer1117, mer1118, mer1218)
+```
+
+#### converting to plot level biomass and removing unidentified species 
+```{r}
+compdata_LA$bio_change<- compdata_LA$bio_change/0.0168
+
+#removing unknown tree species
+compdata_LA<- compdata_LA %>% filter(SPCD != "400")
+compdata_LA<- compdata_LA %>% filter(SPCD != "740")
+```
+
+## calculating species richness (S) and shannon-weiner's diversity index (H)
+species richness
+```{r}
+compdata_LA<- compdata_LA %>% group_by(COUNTY_PLOT_SUB) %>% mutate(S = n_distinct(SPCD)) %>% ungroup()
+```
+Shannon-Weiner's diversity index
+```{r message=FALSE, warning=FALSE}
+compdata_LA$CNTY_PLT_SUB_SPCD<-paste(compdata_LA$COUNTY_PLOT_SUB,compdata_LA$SPCD,sep="#")
+#lets compute shannon's index
+shdata<- compdata_LA %>% select(c(COUNTY_PLOT_SUB,SPCD,S,bio_change))
+#total individuals
+shdata<- shdata %>% group_by(COUNTY_PLOT_SUB) %>% mutate(totind = n()) %>% ungroup()
+#number of each species
+shdata<- shdata %>% group_by(COUNTY_PLOT_SUB, SPCD) %>% mutate(indsp = n()) %>% ungroup()
+#ratio
+shdata<- shdata %>% mutate(p = indsp/totind)
+#pln(p)
+shdata<- shdata %>% mutate(plnp = p*log(p))
+#sum1
+shdata<- shdata %>% group_by(COUNTY_PLOT_SUB,SPCD) %>% summarise(sum1 = mean(plnp))%>% ungroup()
+#final sum
+shdata<- shdata %>% group_by(COUNTY_PLOT_SUB) %>% mutate(summ= sum(sum1)) %>% ungroup()
+#final step
+shdata<- shdata %>% mutate(H= -1*summ)
+compdata_LA$H <- shdata$H[match(compdata_LA$COUNTY_PLOT_SUB,shdata$COUNTY_PLOT_SUB)]
+```
+
+#### we also looked at using basal area to calculate H but decided against using it, here is the code for that calculation anyways
+```{r}
+# making proportions based on BA 
+shdata<- compdata_LA %>% select(c(COUNTY_PLOT_SUB,SPCD,CNTY_PLT_SUB_SPCD,BA))
+#species within plot BA
+shdata<- shdata %>% group_by(CNTY_PLT_SUB_SPCD) %>% mutate(spsum= sum(BA))
+#totalplot BA
+shdata<- shdata %>% group_by(COUNTY_PLOT_SUB) %>% mutate(pltsum = sum(BA))
+#proportion
+shdata<- shdata %>% mutate(p= spsum/pltsum)
+compdata_LA$prop <- shdata$p[match(compdata_LA$CNTY_PLT_SUB_SPCD,shdata$CNTY_PLT_SUB_SPCD)]
+
+#now applying Shannons using that proportion
+#pln(p)
+shdata<- shdata %>% mutate(plnp = p*log(p))
+shdata<- shdata %>% filter(!duplicated(CNTY_PLT_SUB_SPCD))
+shdata<- shdata %>% mutate(H= -1*sum(plnp))
+compdata_LA$HBA <- shdata$H[match(compdata_LA$COUNTY_PLOT_SUB, shdata$COUNTY_PLOT_SUB)]
+
+```
+
+now to remove duplicated lines and negative biomass change
+```{r}
+compdata_LA<- compdata_LA %>% filter(!duplicated(CNTY_PLT_SUB_SPCD)) %>% filter(bio_change>0)
+```
+
+### including environmental variables
+```{r}
+#from COND table
+compdata_LA$slope<- cond_tab$SLOPE[match(compdata_LA$COUNTY_PLOT, cond_tab$COUNTY_PLOT)]
+compdata_LA$slope<- atan(compdata_LA$slope/100)
+
+#from PLOT table
+compdata_LA$LAT <- plot_tab$LAT[match(compdata_LA$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
+compdata_LA$ELEV<-plot_tab$ELEV[match(compdata_LA$COUNTY_PLOT, plot_tab$COUNTY_PLOT)]
+```
+
+labeling data as being from Alabama (important for future merge to region)
+```{r}
+compdata_LA$STATECD=22
+```
+
+#### adding functional traits and exporting
+```{r}
+#FROM FUNC DATA
+FUNC_GRP <- read.csv("namedata.csv",header = T)
+compdata_LA$phenology<- FUNC_GRP$phenology[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$n_fixer<- FUNC_GRP$N_fixer[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$specific_gravity<- FUNC_GRP$specific_gravity[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$maxheight<- FUNC_GRP$max_height_m[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$fruit_type<- FUNC_GRP$fruit_type[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$fruit_length<- FUNC_GRP$fruit_length_cm[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$growth_rate<- FUNC_GRP$growth_rate[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$life_span<- FUNC_GRP$life_span[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$shade_tol<- FUNC_GRP$shade_tolerance[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$drought_tol<- FUNC_GRP$drought_tolerance[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$fire_tol<- FUNC_GRP$fire_tolerance[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+compdata_LA$anaerobic_tol<- FUNC_GRP$anaerobic_tolerance[match(compdata_LA$SPCD, FUNC_GRP$SPCD)]
+
+# exporting functional traits and biomass ---------------------------------
+write.csv(compdata_LA,"C:\\Users\\elbaa\\OneDrive\\Desktop\\compdata_LA.csv")
+```
